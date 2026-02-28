@@ -44,15 +44,12 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
     
     <script src="app.js"></script>
 
     <script>
         // GANTI DENGAN URL WEB APP GAS ANDA
-        const GAS_URL = "";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbx3ikQ_nswP0TJ867YAColMB68SY-5PS3Py_jzCgL99wP7OzT8FtupvMV_FTchCQI02nQ/exec";
 
         let state = {
             user: JSON.parse(localStorage.getItem('edupro_admin')) || null,
@@ -94,7 +91,7 @@
             if (state.currentView === 'login') renderLogin(mainContent);
             else if (state.currentView === 'dashboard') renderTeacherDashboard(mainContent);
             else if (state.currentView === 'courseDetail') renderCourseDetail(mainContent);
-            else if (state.currentView === 'transactions') renderTransactions(mainContent); // <-- ROUTE HALAMAN TRANSAKSI
+            else if (state.currentView === 'transactions') renderTransactions(mainContent);
         };
 
         const navigate = (view, courseData = null) => {
@@ -109,6 +106,9 @@
             if (course) navigate('courseDetail', course);
         };
 
+        // ==========================================
+        // RENDER LOGIN (TERINTEGRASI SUPABASE)
+        // ==========================================
         const renderLogin = (container) => {
             container.innerHTML = `
                 <div class="row justify-content-center align-items-center h-100 mt-5">
@@ -126,14 +126,44 @@
 
             document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const btn = document.getElementById('btnLogin'); btn.innerHTML = 'Memeriksa...'; btn.disabled = true;
-                const res = await apiCall('login', { nisn: document.getElementById('nisn').value, password: document.getElementById('password').value });
+                const btn = document.getElementById('btnLogin'); 
+                btn.innerHTML = 'Memeriksa...'; 
+                btn.disabled = true;
                 
-                if (res.success) {
-                    if(res.data.role !== 'teacher') { Swal.fire('Akses Ditolak', 'Halaman ini khusus Guru.', 'warning'); btn.innerHTML = 'Masuk Dashboard'; btn.disabled = false; return; }
-                    state.user = res.data; localStorage.setItem('edupro_admin', JSON.stringify(res.data));
-                    showToast(`Selamat datang, ${res.data.full_name}!`); navigate('dashboard');
-                } else { Swal.fire('Gagal', res.error, 'error'); btn.innerHTML = 'Masuk Dashboard'; btn.disabled = false; }
+                const inputNisn = document.getElementById('nisn').value;
+                const inputPassword = document.getElementById('password').value;
+
+                try {
+                    // Panggil data dari Supabase berdasarkan NIP / ID Guru
+                    const { data: user, error } = await window.supabaseClient
+                        .from('users')
+                        .select('*')
+                        .eq('nisn', inputNisn)
+                        .maybeSingle();
+
+                    if (error) throw error;
+
+                    if (!user) {
+                        Swal.fire('Gagal', 'NIP / ID Guru tidak terdaftar.', 'error');
+                    } else if (user.password !== inputPassword) {
+                        Swal.fire('Gagal', 'Password yang Anda masukkan salah.', 'error');
+                    } else if (user.role !== 'teacher' && user.role !== 'admin') {
+                        // Pastikan hanya role teacher (atau admin) yang bisa masuk
+                        Swal.fire('Akses Ditolak', 'Halaman ini khusus Guru.', 'warning');
+                    } else {
+                        // Berhasil Login
+                        state.user = user; 
+                        localStorage.setItem('edupro_admin', JSON.stringify(user));
+                        showToast(`Selamat datang, ${user.full_name}!`); 
+                        navigate('dashboard');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('Error', 'Terjadi kesalahan sistem saat login.', 'error');
+                } finally {
+                    btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Masuk Dashboard'; 
+                    btn.disabled = false;
+                }
             });
         };
 
@@ -209,9 +239,6 @@
             listContainer.innerHTML = html;
         };
 
-        // ==========================================
-        // HALAMAN KELOLA TRANSAKSI (BARU)
-        // ==========================================
         const renderTransactions = async (container) => {
             container.innerHTML = `
                 <button onclick="navigate('dashboard')" class="btn btn-link text-decoration-none text-muted p-0 mb-4 fw-semibold"><i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Dashboard</button>
@@ -295,9 +322,6 @@
             });
         };
 
-        // ==========================================
-        // DETAIL KELAS, TUGAS, DAN LAINNYA
-        // ==========================================
         const renderCourseDetail = async (container) => {
             let html = `
                 <button onclick="navigate('dashboard')" class="btn btn-link text-decoration-none text-muted p-0 mb-4 fw-semibold"><i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Dashboard</button>
@@ -533,4 +557,3 @@
 </body>
 
 </html>
-
