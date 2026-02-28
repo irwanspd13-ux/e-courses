@@ -195,16 +195,43 @@
 
             document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const btn = document.getElementById('btnLogin'); btn.innerHTML = 'Memeriksa...'; btn.disabled = true;
-                const res = await apiCall('login', { nisn: document.getElementById('nisn').value, password: document.getElementById('password').value });
+                const btn = document.getElementById('btnLogin'); 
+                btn.innerHTML = 'Memeriksa...'; 
+                btn.disabled = true;
                 
-                if (res.success) {
-                    if(res.data.role !== 'student') { Swal.fire('Akses Ditolak', 'Halaman ini khusus Siswa.', 'warning'); btn.innerHTML = 'Masuk Sekarang'; btn.disabled = false; return; }
-                    state.user = res.data; localStorage.setItem('edupro_student', JSON.stringify(res.data));
-                    showToast(`Halo, ${res.data.full_name}!`); navigate('dashboard');
-                } else { Swal.fire('Gagal', res.error, 'error'); btn.innerHTML = 'Masuk Sekarang'; btn.disabled = false; }
+                const inputNisn = document.getElementById('nisn').value;
+                const inputPassword = document.getElementById('password').value;
+
+                try {
+                    // Gunakan window.supabaseClient dan .maybeSingle() agar tidak error jika data kosong
+                    const { data: user, error } = await window.supabaseClient
+                        .from('users')
+                        .select('*')
+                        .eq('nisn', inputNisn)
+                        .maybeSingle(); 
+
+                    if (error) throw error;
+
+                    if (!user) {
+                        Swal.fire('Gagal', 'NISN tidak terdaftar.', 'error');
+                    } else if (user.password !== inputPassword) {
+                        Swal.fire('Gagal', 'Password yang Anda masukkan salah.', 'error');
+                    } else if (user.role !== 'student') {
+                        Swal.fire('Akses Ditolak', 'Halaman ini khusus Siswa.', 'warning');
+                    } else {
+                        state.user = user; 
+                        localStorage.setItem('edupro_student', JSON.stringify(user));
+                        showToast(`Halo, ${user.full_name}!`); 
+                        navigate('dashboard');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('Error', 'Terjadi kesalahan sistem saat login.', 'error');
+                } finally {
+                    btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Masuk Sekarang'; 
+                    btn.disabled = false;
+                }
             });
-        };
 
         const renderRegister = (container) => {
             container.innerHTML = `
@@ -223,16 +250,56 @@
                     </div>
                 </div>`;
 
-            document.getElementById('registerForm').addEventListener('submit', async (e) => {
+           document.getElementById('registerForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const btn = document.getElementById('btnRegister'); btn.innerHTML = 'Memproses...'; btn.disabled = true;
-                const payload = { full_name: document.getElementById('regName').value, nisn: document.getElementById('regNisn').value, password: document.getElementById('regPassword').value };
+                const btn = document.getElementById('btnRegister'); 
+                btn.innerHTML = 'Memproses...'; 
+                btn.disabled = true;
                 
-                const res = await apiCall('register', payload);
-                if (res.success) { Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message, confirmButtonColor: '#4f46e5' }).then(() => navigate('login')); } 
-                else { Swal.fire('Gagal', res.error, 'error'); btn.innerHTML = 'Daftar Sekarang'; btn.disabled = false; }
+                const regName = document.getElementById('regName').value;
+                const regNisn = document.getElementById('regNisn').value;
+                const regPassword = document.getElementById('regPassword').value;
+
+                try {
+                    // Cek NISN ganda dengan maybeSingle()
+                    const { data: existingUser, error: checkError } = await window.supabaseClient
+                        .from('users')
+                        .select('nisn')
+                        .eq('nisn', regNisn)
+                        .maybeSingle();
+
+                    if (checkError) throw checkError;
+
+                    if (existingUser) {
+                        Swal.fire('Gagal', 'NISN sudah terdaftar! Silakan langsung Login.', 'error');
+                        btn.innerHTML = '<i class="fa-solid fa-user-plus me-2"></i> Daftar Sekarang'; 
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    // Insert data baru
+                    const { error: insertError } = await window.supabaseClient
+                        .from('users')
+                        .insert([
+                            { full_name: regName, nisn: regNisn, password: regPassword, role: 'student' }
+                        ]);
+
+                    if (insertError) throw insertError;
+
+                    Swal.fire({ 
+                        icon: 'success', 
+                        title: 'Berhasil!', 
+                        text: 'Pendaftaran berhasil! Silakan Login.', 
+                        confirmButtonColor: '#4f46e5' 
+                    }).then(() => navigate('login'));
+
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('Error', 'Gagal mendaftar. Pastikan koneksi stabil.', 'error');
+                    btn.innerHTML = '<i class="fa-solid fa-user-plus me-2"></i> Daftar Sekarang'; 
+                    btn.disabled = false;
+                }
             });
-        };
 
         const handleLogout = () => {
             Swal.fire({ title: 'Keluar?', text: "Sesi akan diakhiri.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Keluar' }).then((res) => {
@@ -586,6 +653,7 @@
 </body>
 
 </html>
+
 
 
 
