@@ -197,10 +197,26 @@
             document.getElementById('formAddCourse').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btn = document.getElementById('btnCourse'); btn.disabled = true; btn.innerHTML = 'Menyimpan...';
-                const payload = { title: document.getElementById('courseTitle').value, description: document.getElementById('courseDesc').value, price: document.getElementById('coursePrice').value || 0, teacher_id: state.user.id };
-                const res = await apiCall('addCourse', payload);
-                if (res.success) { showToast(res.message); document.getElementById('formAddCourse').reset(); loadTeacherCourses(); }
-                btn.disabled = false; btn.innerHTML = 'Buat Kelas';
+                
+                try {
+                    const { error } = await window.supabaseClient
+                        .from('courses')
+                        .insert([{ 
+                            title: document.getElementById('courseTitle').value, 
+                            description: document.getElementById('courseDesc').value, 
+                            price: document.getElementById('coursePrice').value || 0, 
+                            teacher_id: state.user.id 
+                        }]);
+
+                    if (error) throw error;
+                    showToast('Kelas berhasil dibuat!'); 
+                    document.getElementById('formAddCourse').reset(); 
+                    loadTeacherCourses();
+                } catch (err) {
+                    Swal.fire('Gagal', err.message, 'error');
+                } finally {
+                    btn.disabled = false; btn.innerHTML = 'Buat Kelas';
+                }
             });
 
             document.getElementById('formAddStudent').addEventListener('submit', async (e) => {
@@ -214,29 +230,44 @@
             loadTeacherCourses();
         };
 
-        const loadTeacherCourses = async () => {
-            const listData = await apiCall('getCourses', { role: state.user.role, teacher_id: state.user.id });
+       const loadTeacherCourses = async () => {
             const listContainer = document.getElementById('courseList');
-            state.courses = listData.data || [];
             
-            if (state.courses.length === 0) return listContainer.innerHTML = `<div class="col-12 text-center text-muted p-5 border bg-white rounded">Belum ada kelas yang Anda buat.</div>`;
+            try {
+                const { data: courses, error } = await window.supabaseClient
+                    .from('courses')
+                    .select('*')
+                    .eq('teacher_id', state.user.id)
+                    .order('created_at', { ascending: false });
 
-            let html = '';
-            state.courses.forEach(course => {
-                const priceText = parseInt(course.price) > 0 ? `Rp ${formatRupiah(course.price)}` : 'Gratis';
-                html += `
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="card card-hover h-100">
-                            <span class="price-badge bg-secondary text-white">${priceText}</span>
-                            <div class="card-body d-flex flex-column mt-3">
-                                <h5 class="card-title fw-bold">${course.title}</h5>
-                                <p class="card-text text-muted flex-grow-1 small">${course.description}</p>
-                                <button onclick="openCourseGlobal('${course.id}')" class="btn btn-outline-primary mt-3 w-100">Kelola Kelas</button>
+                if (error) throw error;
+                
+                state.courses = courses || [];
+                
+                if (state.courses.length === 0) {
+                    listContainer.innerHTML = `<div class="col-12 text-center text-muted p-5 border bg-white rounded">Belum ada kelas yang Anda buat.</div>`;
+                    return;
+                }
+
+                let html = '';
+                state.courses.forEach(course => {
+                    const priceText = parseInt(course.price) > 0 ? `Rp ${formatRupiah(course.price)}` : 'Gratis';
+                    html += `
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <div class="card card-hover h-100">
+                                <span class="price-badge bg-secondary text-white">${priceText}</span>
+                                <div class="card-body d-flex flex-column mt-3">
+                                    <h5 class="card-title fw-bold">${course.title}</h5>
+                                    <p class="card-text text-muted flex-grow-1 small">${course.description}</p>
+                                    <button onclick="openCourseGlobal('${course.id}')" class="btn btn-outline-primary mt-3 w-100">Kelola Kelas</button>
+                                </div>
                             </div>
-                        </div>
-                    </div>`;
-            });
-            listContainer.innerHTML = html;
+                        </div>`;
+                });
+                listContainer.innerHTML = html;
+            } catch (err) {
+                listContainer.innerHTML = `<div class="col-12 text-danger">Gagal memuat data kelas.</div>`;
+            }
         };
 
         const renderTransactions = async (container) => {
@@ -557,3 +588,4 @@
 </body>
 
 </html>
+
