@@ -389,8 +389,8 @@
                 // Format: doc.addImage(gambar, tipe, posisi_X, posisi_Y, lebar, tinggi)
                 // Jika ingin mengubah ukuran, pastikan posisi_X = 148.5 - (lebar / 2) agar selalu di tengah.
                 
-                const logoLebar = 46; // Sesuaikan angka ini jika kurang lebar
-                const logoTinggi = 16; // Sesuaikan angka ini jika kurang tinggi
+                const logoLebar = 56; // Sesuaikan angka ini jika kurang lebar
+                const logoTinggi = 46; // Sesuaikan angka ini jika kurang tinggi
                 const posisiX = 148.5 - (logoLebar / 2); // Rumus otomatis agar logo selalu tepat di tengah
                 
                 doc.addImage(logoImg, 'PNG', posisiX, 18, logoLebar, logoTinggi);
@@ -399,13 +399,13 @@
                 doc.setFont('helvetica', 'bold'); 
                 doc.setFontSize(28); 
                 doc.setTextColor(15, 23, 42);
-                doc.text("SERTIFIKAT KELULUSAN", 148.5, 65, { align: 'center' });
+                doc.text("SERTIFIKAT KELULUSAN", 148.5, 55, { align: 'center' });
 
                 // 6. Nomor Sertifikat
                 doc.setFont('helvetica', 'normal'); 
                 doc.setFontSize(10); 
                 doc.setTextColor(100, 116, 139);
-                doc.text(`Nomor Dokumen: ${certNumber}`, 148.5, 72, { align: 'center' });
+                doc.text(`Nomor Dokumen: ${certNumber}`, 148.5, 62, { align: 'center' });
 
                 // 7. Teks Pengantar
                 doc.setFontSize(13); 
@@ -476,5 +476,6 @@
     </script>
 </body>
 </html>
+
 
 
