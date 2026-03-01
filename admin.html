@@ -423,11 +423,31 @@
 
                 document.getElementById('formAddMaterial').addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    const btn = document.getElementById('btnMat'); btn.disabled = true; btn.innerHTML = 'Menyimpan...';
-                    const payload = { course_id: state.activeCourse.id, title: document.getElementById('matTitle').value, description: document.getElementById('matDesc').value, content_url: document.getElementById('matUrl').value, order_number: parseInt(document.getElementById('matOrder').value), embed_code: document.getElementById('matEmbed').value };
-                    const { error } = await window.supabaseClient.from('materials').insert([payload]);
-                    if (!error) { showToast("Materi berhasil ditambahkan!"); loadTabContent(); } 
-                    else { Swal.fire('Gagal', error.message, 'error'); }
+                    const btn = document.getElementById('btnMat'); 
+                    btn.disabled = true; 
+                    btn.innerHTML = 'Menyimpan...';
+                    
+                    const payload = { 
+                        course_id: state.activeCourse.id, 
+                        title: document.getElementById('matTitle').value, 
+                        description: document.getElementById('matDesc').value, 
+                        content_url: document.getElementById('matUrl').value, 
+                        order_number: parseInt(document.getElementById('matOrder').value), 
+                        embed_code: document.getElementById('matEmbed').value 
+                    };
+                    
+                    try {
+                        const { error } = await window.supabaseClient.from('materials').insert([payload]);
+                        if (error) throw error;
+                        
+                        showToast("Materi berhasil ditambahkan!"); 
+                        loadTabContent();
+                    } catch (err) {
+                        console.error(err);
+                        Swal.fire('Gagal', err.message, 'error');
+                        btn.disabled = false; 
+                        btn.innerHTML = '<i class="fa-solid fa-plus me-2"></i> Simpan Materi';
+                    }
                 });
 
             } else if (state.activeTab === 'tugas') {
@@ -607,5 +627,6 @@
 </body>
 
 </html>
+
 
 
