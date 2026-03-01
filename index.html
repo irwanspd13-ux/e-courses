@@ -699,10 +699,61 @@
             }
         };
 
+        // =====================================
+        // FUNGSI MENDAFTAR KELAS (SUPABASE)
+        // =====================================
+        window.enrollCourse = async (courseId, price) => {
+            const isFree = parseInt(price) === 0;
+            const statusTransaksi = isFree ? 'approved' : 'pending';
+            const confirmText = isFree ? 'Ya, ikuti kelas ini!' : 'Ya, daftar kelas!';
+
+            Swal.fire({
+                title: isFree ? 'Ikuti Kelas Ini?' : 'Daftar Kelas Berbayar?',
+                text: isFree ? "Kelas ini gratis, Anda bisa langsung mulai belajar." : "Status pendaftaran akan 'Pending' hingga dikonfirmasi oleh Admin.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#4f46e5',
+                confirmButtonText: confirmText,
+                cancelButtonText: 'Batal'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    try {
+                        const { data: existing } = await window.supabaseClient.from('transactions')
+                            .select('id').eq('student_id', state.user.id).eq('course_id', courseId).maybeSingle();
+
+                        if (existing) {
+                            Swal.fire('Info', 'Anda sudah terdaftar di kelas ini.', 'info');
+                            renderDashboard();
+                            return;
+                        }
+
+                        const { error } = await window.supabaseClient.from('transactions').insert([{
+                            student_id: state.user.id,
+                            course_id: courseId,
+                            amount: parseInt(price),
+                            status: statusTransaksi
+                        }]);
+
+                        if (error) throw error;
+
+                        if (isFree) {
+                            Swal.fire('Berhasil!', 'Anda telah terdaftar dan bisa langsung belajar.', 'success').then(() => renderDashboard());
+                        } else {
+                            Swal.fire('Pendaftaran Berhasil', 'Silakan selesaikan pembayaran dan hubungi Admin.', 'success').then(() => renderDashboard());
+                        }
+                    } catch (err) {
+                        Swal.fire('Gagal', err.message, 'error');
+                    }
+                }
+            });
+        };
+
         renderApp();
     </script>
 </body>
 </html>
+
 
 
 
