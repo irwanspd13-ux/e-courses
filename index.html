@@ -338,7 +338,7 @@
         };
 
        // ==========================================
-        // CETAK PDF SERTIFIKAT FULL CENTERED + LOGO & QR CODE
+        // CETAK PDF SERTIFIKAT FULL CENTERED + LOGO, TANGGAL & QR CODE
         // ==========================================
         window.downloadCertificate = async () => {
             Swal.fire({ title: 'Membuat Sertifikat...', text: 'Mempersiapkan desain resolusi tinggi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
@@ -355,12 +355,13 @@
                     });
                 };
 
-                // 1. Ambil 8 huruf pertama dari ID Siswa untuk Nomor Sertifikat agar rapi
+                // 1. Siapkan Nomor Sertifikat & Tanggal Hari Ini (Format Indonesia)
                 const shortId = state.user.id ? state.user.id.substring(0, 8).toUpperCase() : '001';
                 const certNumber = `CERT-EDU-${shortId}`;
+                const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); // Hasil: "1 Maret 2026"
                 
-                // Siapkan Data QR Code
-                const qrText = `Sertifikat Valid EduPro\nNomor: ${certNumber}\nNama: ${state.user.full_name}\nLulus Kelas: ${state.activeCourse.title}\nPredikat: ${window.coursePredikat}\nSkor: ${window.courseFinalScore}`;
+                // Siapkan Data QR Code (Ditambah Tanggal)
+                const qrText = `Sertifikat Valid EduPro\nNomor: ${certNumber}\nTanggal: ${today}\nNama: ${state.user.full_name}\nLulus Kelas: ${state.activeCourse.title}\nPredikat: ${window.coursePredikat}\nSkor: ${window.courseFinalScore}`;
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrText)}`;
                 
                 // Link Background & Logo Anda
@@ -375,49 +376,86 @@
                 ]);
 
                 const { jsPDF } = window.jspdf; 
-                const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); // Ukuran A4 Landscape (297 x 210 mm)
+                const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); // Ukuran A4 Landscape
 
                 // 3. Pasang Background (Penuhi Kertas)
                 doc.addImage(bgImg, 'PNG', 0, 0, 297, 210);
 
-                // 4. Pasang Logo EduPro di Tengah Atas (Posisi X=133.5, Y=25)
-                doc.addImage(logoImg, 'PNG', 133.5, 25, 30, 30);
+                // =======================================================
+                // TATA LETAK ELEMEN (Rata Tengah pada sumbu X = 148.5 mm)
+                // =======================================================
 
-                // 5. Pasang Nomor Sertifikat
-                doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(100, 116, 139);
-                doc.text(`Nomor Sertifikat: ${certNumber}`, 148.5, 62, { align: 'center' });
+                // 4. Logo EduPro
+                doc.addImage(logoImg, 'PNG', 130.5, 18, 36, 36);
 
-                // 6. Pasang Teks Pengantar
-                doc.setFontSize(14); doc.setTextColor(15, 23, 42);
-                doc.text("Diberikan secara resmi kepada:", 148.5, 78, { align: 'center' });
+                // 5. Judul Utama
+                doc.setFont('helvetica', 'bold'); 
+                doc.setFontSize(28); 
+                doc.setTextColor(15, 23, 42);
+                doc.text("SERTIFIKAT KELULUSAN", 148.5, 65, { align: 'center' });
 
-                // 7. Nama Siswa
-                doc.setFont('helvetica', 'bold'); doc.setFontSize(32); doc.setTextColor(15, 23, 42); 
-                doc.text(state.user.full_name, 148.5, 92, { align: 'center' }); 
-                
-                // 8. Teks Kelulusan
-                doc.setFontSize(14); doc.setFont('helvetica', 'normal');
-                doc.text("Telah berhasil menyelesaikan program kelas:", 148.5, 108, { align: 'center' });
-                
-                // 9. Nama Kelas
-                doc.setFontSize(24); doc.setFont('helvetica', 'bold'); doc.setTextColor(79, 70, 229);
-                doc.text(state.activeCourse.title, 148.5, 120, { align: 'center' });
-                
-                // 10. Predikat & Skor
-                doc.setFontSize(14); doc.setFont('helvetica', 'italic'); doc.setTextColor(15, 23, 42);
-                doc.text(`Dengan Predikat: ${window.coursePredikat} (Skor: ${window.courseFinalScore})`, 148.5, 130, { align: 'center' });
+                // 6. Nomor Sertifikat
+                doc.setFont('helvetica', 'normal'); 
+                doc.setFontSize(10); 
+                doc.setTextColor(100, 116, 139);
+                doc.text(`Nomor Dokumen: ${certNumber}`, 148.5, 72, { align: 'center' });
 
-                // 11. Pasang QR Code (Posisi X=136, Y=142)
-                doc.addImage(qrImg, 'PNG', 136, 142, 25, 25);
-                
-                // 12. Nama Direktur & Jabatan
-                doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(15, 23, 42);
-                doc.text("Kartia Amriani", 148.5, 175, { align: 'center' }); 
-                
-                doc.setFontSize(11); doc.setFont('helvetica', 'normal');
-                doc.text("Direktur Utama EduPro", 148.5, 181, { align: 'center' });
+                // 7. Teks Pengantar
+                doc.setFontSize(13); 
+                doc.setTextColor(71, 85, 105);
+                doc.text("Dengan bangga dianugerahkan kepada:", 148.5, 87, { align: 'center' });
 
-                // 13. Simpan File PDF
+                // 8. Nama Siswa
+                doc.setFont('helvetica', 'bold'); 
+                doc.setFontSize(34); 
+                doc.setTextColor(15, 23, 42); 
+                doc.text(state.user.full_name, 148.5, 101, { align: 'center' }); 
+                
+                // 9. Teks Kelulusan
+                doc.setFontSize(13); 
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(71, 85, 105);
+                doc.text("Atas dedikasi dan keberhasilannya dalam menyelesaikan program kelas premium:", 148.5, 115, { align: 'center' });
+                
+                // 10. Nama Kelas
+                doc.setFontSize(24); 
+                doc.setFont('helvetica', 'bold'); 
+                doc.setTextColor(79, 70, 229); 
+                doc.text(state.activeCourse.title, 148.5, 127, { align: 'center' });
+                
+                // 11. Predikat & Skor
+                doc.setFontSize(13); 
+                doc.setFont('helvetica', 'italic'); 
+                doc.setTextColor(15, 23, 42);
+                doc.text(`Predikat: ${window.coursePredikat}   |   Skor Akhir: ${window.courseFinalScore}`, 148.5, 137, { align: 'center' });
+
+                // 12. TANGGAL SERTIFIKAT (Baru Ditambahkan)
+                doc.setFontSize(12); 
+                doc.setFont('helvetica', 'normal'); 
+                doc.setTextColor(71, 85, 105);
+                doc.text(`Diberikan pada tanggal: ${today}`, 148.5, 145, { align: 'center' });
+
+                // 13. QR Code Validasi 
+                doc.addImage(qrImg, 'PNG', 137.5, 149, 22, 22);
+                
+                // 14. Nama Direktur
+                doc.setFontSize(14); 
+                doc.setFont('helvetica', 'bold'); 
+                doc.setTextColor(15, 23, 42);
+                doc.text("Kartia Amriani", 148.5, 178, { align: 'center' }); 
+                
+                // Garis Bawah Tanda Tangan
+                doc.setDrawColor(15, 23, 42);
+                doc.setLineWidth(0.5);
+                doc.line(125, 180, 172, 180); 
+                
+                // 15. Jabatan
+                doc.setFontSize(11); 
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(71, 85, 105);
+                doc.text("Direktur Utama EduPro", 148.5, 186, { align: 'center' });
+
+                // 16. Simpan File PDF
                 doc.save(`Sertifikat_${state.activeCourse.title.replace(/\s+/g, '_')}.pdf`);
                 Swal.fire('Berhasil!', 'Sertifikat resmi berhasil dicetak.', 'success');
                 
