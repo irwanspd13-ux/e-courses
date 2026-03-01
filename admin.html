@@ -482,8 +482,13 @@
                 });
 
             } else if (state.activeTab === 'tugas') {
-                const resSub = await apiCall('getSubmissions', { course_id: state.activeCourse.id });
-                const submissions = resSub.data || [];
+                // Mengambil tugas dari Supabase sekaligus menggabungkan (Join) dengan Nama Siswa dan Judul Materi
+                const { data: subData, error } = await window.supabaseClient
+                    .from('submissions')
+                    .select('id, submission_url, score, users(full_name), materials(title)')
+                    .eq('course_id', state.activeCourse.id);
+                    
+                const submissions = subData || [];
 
                 let html = `
                     <div class="card border-0 shadow-sm overflow-hidden mb-4">
@@ -496,14 +501,17 @@
                 if (submissions.length === 0) { html += `<tr><td colSpan="5" class="text-center p-5 text-muted">Belum ada tugas yang dikumpulkan siswa.</td></tr>`; } 
                 else {
                     submissions.forEach(sub => {
-                        let scoreBadge = sub.score !== '' && sub.score !== null ? `<span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2" style="font-size:0.9rem;">${sub.score} / 100</span>` : `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2" style="font-size:0.9rem;">Belum Dinilai</span>`;
+                        let scoreBadge = sub.score !== null && sub.score !== '' ? `<span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2" style="font-size:0.9rem;">${sub.score} / 100</span>` : `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2" style="font-size:0.9rem;">Belum Dinilai</span>`;
+                        let studentName = sub.users ? sub.users.full_name : 'Siswa Tidak Diketahui';
+                        let materialTitle = sub.materials ? sub.materials.title : 'Materi Terhapus';
+
                         html += `
                             <tr>
-                                <td class="ps-4 py-3 fw-semibold text-dark">${sub.student_name}</td>
-                                <td class="py-3"><span class="small text-muted">${sub.material_title}</span></td>
+                                <td class="ps-4 py-3 fw-semibold text-dark">${studentName}</td>
+                                <td class="py-3"><span class="small text-muted">${materialTitle}</span></td>
                                 <td class="py-3 text-center"><a href="${sub.submission_url}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill"><i class="fa-solid fa-link me-1"></i> Buka File</a></td>
                                 <td class="py-3 text-center">${scoreBadge}</td>
-                                <td class="pe-4 py-3 text-center"><button onclick="gradeSubmission('${sub.id}', '${sub.student_name}')" class="btn btn-sm btn-success"><i class="fa-solid fa-check me-1"></i> Beri Nilai</button></td>
+                                <td class="pe-4 py-3 text-center"><button onclick="gradeSubmission('${sub.id}', '${studentName}')" class="btn btn-sm btn-success"><i class="fa-solid fa-check me-1"></i> Beri Nilai</button></td>
                             </tr>`;
                     });
                 }
@@ -670,6 +678,7 @@
 </body>
 
 </html>
+
 
 
 
