@@ -729,6 +729,7 @@
                         }
 
                         const { error } = await window.supabaseClient.from('transactions').insert([{
+                            id: 'TRX-' + Date.now(), // Tambahkan baris ini pembuat ID otomatis
                             student_id: state.user.id,
                             course_id: courseId,
                             amount: parseInt(price),
@@ -753,6 +754,7 @@
     </script>
 </body>
 </html>
+
 
 
 
