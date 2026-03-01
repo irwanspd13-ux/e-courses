@@ -447,8 +447,9 @@
                 const { data: quizzesData } = await window.supabaseClient.from('quizzes').select('*').eq('course_id', state.activeCourse.id);
                 const { data: scoreData } = await window.supabaseClient.from('quiz_scores').select('score, passed').eq('student_id', state.user.id).eq('course_id', state.activeCourse.id).maybeSingle();
                 
-                // 3. Tugas (Submissions) masih dari GAS sementara
-                const resSub = await apiCall('getSubmissions', { course_id: state.activeCourse.id });
+                // 3. Ambil Tugas (Submissions) dari Supabase
+                const { data: subData } = await window.supabaseClient.from('submissions').select('*').eq('course_id', state.activeCourse.id);
+                const resSub = { success: true, data: subData || [] };
 
                 const materials = materialsData || [];
                 const progressMap = progressData ? progressData.map(p => p.material_id) : [];
@@ -618,7 +619,9 @@
             } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
         };
 
-        // PENTING: Upload tugas saat ini masih mengandalkan GAS API (Spreedsheet / GDrive)
+        // ==========================================
+        // UPLOAD TUGAS KE SUPABASE STORAGE
+        // ==========================================
         window.submitTask = async (materialId) => {
             const fileInput = document.getElementById(`task_file_${materialId}`);
             if (!fileInput.files || fileInput.files.length === 0) { return Swal.fire('Oops!', 'Mohon pilih file foto/dokumen tugas Anda terlebih dahulu.', 'warning'); }
@@ -626,18 +629,54 @@
             const file = fileInput.files[0];
             if (file.size > 5 * 1024 * 1024) { return Swal.fire('Oops!', 'Ukuran file terlalu besar. Maksimal 5MB.', 'warning'); }
 
-            Swal.fire({ title: 'Mengupload Tugas...', text: 'Mohon tunggu, file sedang dikirim...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+            Swal.fire({ title: 'Mengupload Tugas...', text: 'File sedang dikirim ke Supabase...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
             
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                const result = e.target.result; const base64Data = result.split(',')[1];
-                const payload = { student_id: state.user.id, course_id: state.activeCourse.id, material_id: materialId, fileName: file.name, mimeType: file.type, fileData: base64Data };
+            try {
+                // 1. Buat nama file unik (ID Siswa + ID Materi + Waktu)
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${state.user.id}_${materialId}_${Date.now()}.${fileExt}`;
                 
-                const res = await apiCall('submitAssignment', payload);
-                if (res.success) { showToast(res.message); loadTabContent(); } else { Swal.fire('Gagal', res.error, 'error'); }
-            };
-            reader.onerror = function() { Swal.fire('Gagal', 'Terjadi kesalahan saat membaca file.', 'error'); };
-            reader.readAsDataURL(file); 
+                // 2. Upload file ke Supabase Storage (Bucket: tugas_siswa)
+                const { data: uploadData, error: uploadError } = await window.supabaseClient.storage
+                    .from('tugas_siswa')
+                    .upload(fileName, file);
+                    
+                if (uploadError) throw uploadError;
+
+                // 3. Dapatkan Link (URL) Public dari file yang diupload
+                const { data: publicUrlData } = window.supabaseClient.storage
+                    .from('tugas_siswa')
+                    .getPublicUrl(fileName);
+                    
+                const fileUrl = publicUrlData.publicUrl;
+
+                // 4. Simpan data ke tabel submissions
+                // Cek apakah sudah pernah upload tugas untuk materi ini
+                const { data: existingSub } = await window.supabaseClient.from('submissions')
+                    .select('id').eq('student_id', state.user.id).eq('material_id', materialId).maybeSingle();
+
+                if (existingSub) {
+                    // Update file jika sudah ada
+                    await window.supabaseClient.from('submissions').update({
+                        submission_url: fileUrl,
+                        score: null // Reset nilai karena mengumpulkan ulang
+                    }).eq('id', existingSub.id);
+                } else {
+                    // Insert baru jika belum ada
+                    await window.supabaseClient.from('submissions').insert([{
+                        student_id: state.user.id,
+                        course_id: state.activeCourse.id,
+                        material_id: materialId,
+                        submission_url: fileUrl
+                    }]);
+                }
+                
+                showToast('Tugas berhasil diupload!');
+                loadTabContent(); // Muat ulang tampilan
+            } catch (err) {
+                console.error("Upload Error:", err);
+                Swal.fire('Gagal', 'Terjadi kesalahan saat mengupload: ' + err.message, 'error');
+            }
         };
 
         // PENTING: Pembuatan PDF Sertifikat masih mengandalkan GAS API
@@ -654,4 +693,5 @@
     </script>
 </body>
 </html>
+
 
