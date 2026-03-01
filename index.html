@@ -386,7 +386,14 @@
                 // =======================================================
 
                 // 4. Logo EduPro
-                doc.addImage(logoImg, 'PNG', 130.5, 18, 46, 56);
+                // Format: doc.addImage(gambar, tipe, posisi_X, posisi_Y, lebar, tinggi)
+                // Jika ingin mengubah ukuran, pastikan posisi_X = 148.5 - (lebar / 2) agar selalu di tengah.
+                
+                const logoLebar = 46; // Sesuaikan angka ini jika kurang lebar
+                const logoTinggi = 16; // Sesuaikan angka ini jika kurang tinggi
+                const posisiX = 148.5 - (logoLebar / 2); // Rumus otomatis agar logo selalu tepat di tengah
+                
+                doc.addImage(logoImg, 'PNG', posisiX, 18, logoLebar, logoTinggi);
 
                 // 5. Judul Utama
                 doc.setFont('helvetica', 'bold'); 
@@ -469,4 +476,5 @@
     </script>
 </body>
 </html>
+
 
