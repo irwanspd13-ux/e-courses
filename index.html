@@ -629,10 +629,10 @@
             const file = fileInput.files[0];
             if (file.size > 5 * 1024 * 1024) { return Swal.fire('Oops!', 'Ukuran file terlalu besar. Maksimal 5MB.', 'warning'); }
 
-            Swal.fire({ title: 'Mengupload Tugas...', text: 'File sedang dikirim ke Supabase...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+            Swal.fire({ title: 'Mengupload Tugas...', text: 'File sedang dikirim ke server...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
             
             try {
-                // 1. Buat nama file unik (ID Siswa + ID Materi + Waktu)
+                // 1. Buat nama file unik
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${state.user.id}_${materialId}_${Date.now()}.${fileExt}`;
                 
@@ -643,7 +643,7 @@
                     
                 if (uploadError) throw uploadError;
 
-                // 3. Dapatkan Link (URL) Public dari file yang diupload
+                // 3. Dapatkan Link (URL) Public
                 const { data: publicUrlData } = window.supabaseClient.storage
                     .from('tugas_siswa')
                     .getPublicUrl(fileName);
@@ -651,31 +651,35 @@
                 const fileUrl = publicUrlData.publicUrl;
 
                 // 4. Simpan data ke tabel submissions
-                // Cek apakah sudah pernah upload tugas untuk materi ini
                 const { data: existingSub } = await window.supabaseClient.from('submissions')
                     .select('id').eq('student_id', state.user.id).eq('material_id', materialId).maybeSingle();
 
                 if (existingSub) {
-                    // Update file jika sudah ada
-                    await window.supabaseClient.from('submissions').update({
+                    // Update data jika sudah pernah mengumpulkan
+                    const { error: updateErr } = await window.supabaseClient.from('submissions').update({
                         submission_url: fileUrl,
-                        score: null // Reset nilai karena mengumpulkan ulang
+                        score: null 
                     }).eq('id', existingSub.id);
+                    
+                    if (updateErr) throw updateErr; // Lemparkan error jika gagal update
                 } else {
-                    // Insert baru jika belum ada
-                    await window.supabaseClient.from('submissions').insert([{
+                    // Insert data baru (DENGAN PENAMBAHAN ID OTOMATIS)
+                    const { error: insertErr } = await window.supabaseClient.from('submissions').insert([{
+                        id: 'SUB-' + Date.now(), // ID Manual untuk menghindari error Primary Key
                         student_id: state.user.id,
                         course_id: state.activeCourse.id,
                         material_id: materialId,
                         submission_url: fileUrl
                     }]);
+                    
+                    if (insertErr) throw insertErr; // Lemparkan error jika gagal insert
                 }
                 
                 showToast('Tugas berhasil diupload!');
-                loadTabContent(); // Muat ulang tampilan
+                loadTabContent(); // Refresh tampilan untuk memunculkan tombol "Buka File"
             } catch (err) {
                 console.error("Upload Error:", err);
-                Swal.fire('Gagal', 'Terjadi kesalahan saat mengupload: ' + err.message, 'error');
+                Swal.fire('Gagal', 'Penyimpanan database gagal: ' + err.message, 'error');
             }
         };
 
@@ -693,5 +697,6 @@
     </script>
 </body>
 </html>
+
 
 
