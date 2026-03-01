@@ -593,7 +593,7 @@
                 const certNumber = `CERT-EDU-${shortId}`;
                 const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); 
                 const qrText = `Validasi EduPro\nNomor: ${certNumber}\nTanggal: ${today}\nNama: ${state.user.full_name}\nKelas: ${state.activeCourse.title}\nSkor: ${window.courseFinalScore}`;
-                const qrUrl = `https://i.ibb.co.com/4wQBptFN/Qris-Dana-fix.png`;
+                const qrUrl = `https://i.ibb.co.com/4wQBptFN/Qris-Dana-fix.png&data=${encodeURIComponent(qrText)}`;
                 const [bgImg, qrImg, logoImg] = await Promise.all([ loadImage('https://i.ibb.co.com/DDSSRmff/background-sertifikat1.png'), loadImage(qrUrl), loadImage('https://i.ibb.co.com/fYDFWPyM/logo-edu-Pro.png') ]);
                 const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); 
                 doc.addImage(bgImg, 'PNG', 0, 0, 297, 210);
@@ -630,3 +630,4 @@
     </script>
 </body>
 </html>
+
