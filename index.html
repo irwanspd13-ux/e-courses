@@ -424,20 +424,19 @@
             // 1. Ambil Materi & Progress dari Supabase
             const { data: materialsData } = await window.supabaseClient.from('materials').select('*').eq('course_id', state.activeCourse.id).order('order_number', { ascending: true });
             const { data: progressData } = await window.supabaseClient.from('progress').select('material_id').eq('student_id', state.user.id);
+                        
+           // 2. Ambil Kuis dan Nilai dari Supabase
+            const { data: quizzesData } = await window.supabaseClient.from('quizzes').select('*').eq('course_id', state.activeCourse.id);
+            const { data: scoreData } = await window.supabaseClient.from('quiz_scores').select('score, passed').eq('student_id', state.user.id).eq('course_id', state.activeCourse.id).maybeSingle();
             
-            // 2. Kuis, Nilai, dan Tugas masih dari GAS (sementara)
-            const [resScore, resQuiz, resSub] = await Promise.all([
-                apiCall('getQuizScore', { student_id: state.user.id, course_id: state.activeCourse.id }),
-                apiCall('getQuiz', { course_id: state.activeCourse.id, role: 'student' }),
-                apiCall('getSubmissions', { course_id: state.activeCourse.id }) 
-            ]);
+            // 3. Tugas (Submissions) masih dari GAS sementara
+            const resSub = await apiCall('getSubmissions', { course_id: state.activeCourse.id });
 
             const materials = materialsData || [];
             const progressMap = progressData ? progressData.map(p => p.material_id) : [];
-            
-            const bestScore = resScore.data ? resScore.data.score : null;
-            const isPassedQuiz = resScore.data ? resScore.data.passed : false;
-            const quizzes = resQuiz.data || [];
+            const bestScore = scoreData ? scoreData.score : null;
+            const isPassedQuiz = scoreData ? scoreData.passed : false;
+            const quizzes = quizzesData || [];
             
             const mySubmissions = resSub.success ? resSub.data.filter(s => s.student_id === state.user.id) : [];
             
@@ -583,20 +582,44 @@
                 
                 content.innerHTML = html;
 
-                document.getElementById('quizForm').addEventListener('submit', async (e) => {
+               document.getElementById('quizForm').addEventListener('submit', async (e) => {
                     e.preventDefault();
                     Swal.fire({ title: 'Menghitung Nilai...', text: 'Mohon tunggu sebentar', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
                     
-                    const answers = {};
-                    quizzes.forEach(q => { const selected = document.querySelector(`input[name="q_${q.id}"]:checked`); if(selected) answers[q.id] = selected.value; });
+                    // Hitung nilai langsung di browser
+                    let correctCount = 0;
+                    quizzes.forEach(q => { 
+                        const selected = document.querySelector(`input[name="q_${q.id}"]:checked`); 
+                        if(selected && selected.value === q.correct) correctCount++; 
+                    });
 
-                    const res = await apiCall('submitQuiz', { student_id: state.user.id, course_id: state.activeCourse.id, answers: answers });
-                    if(res.success) { Swal.fire({ icon: res.data.passed ? 'success' : 'error', title: `Skor Anda: ${res.data.score}`, text: res.message, confirmButtonColor: '#4f46e5' }).then(() => loadTabContent()); } 
-                    else { Swal.fire('Error', res.error, 'error'); }
+                    const finalScore = Math.round((correctCount / quizzes.length) * 100);
+                    const isPassed = finalScore >= 80; // KKM 80
+
+                    try {
+                        // Cek apakah sudah ada nilai sebelumnya di Supabase
+                        const { data: existingScore } = await window.supabaseClient.from('quiz_scores')
+                            .select('id, score').eq('student_id', state.user.id).eq('course_id', state.activeCourse.id).maybeSingle();
+
+                        if (existingScore) {
+                            // Update nilai HANYA JIKA nilai baru lebih besar atau sama
+                            if (finalScore >= existingScore.score) {
+                                await window.supabaseClient.from('quiz_scores').update({ score: finalScore, passed: isPassed }).eq('id', existingScore.id);
+                            }
+                        } else {
+                            // Insert nilai baru jika belum ada
+                            await window.supabaseClient.from('quiz_scores').insert([{
+                                student_id: state.user.id, course_id: state.activeCourse.id, score: finalScore, passed: isPassed
+                            }]);
+                        }
+
+                        let msg = isPassed ? `Selamat! Anda lulus dengan nilai ${finalScore}.` : `Nilai Anda ${finalScore}. Anda belum mencapai KKM (80). Silakan coba lagi.`;
+                        Swal.fire({ icon: isPassed ? 'success' : 'error', title: `Skor: ${finalScore}`, text: msg, confirmButtonColor: '#4f46e5' }).then(() => loadTabContent());
+                    } catch (err) {
+                        Swal.fire('Error', 'Gagal menyimpan nilai kuis.', 'error');
+                    }
                 });
-            }
-        };
-
+                
         window.markDone = async (materialId) => {
             Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
             try {
@@ -678,5 +701,6 @@
     </script>
 </body>
 </html>
+
 
 
