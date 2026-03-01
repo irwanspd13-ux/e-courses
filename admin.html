@@ -297,43 +297,64 @@
         };
 
         window.loadTransactions = async () => {
-            const res = await apiCall('getTransactions', { role: 'teacher' });
             const tbody = document.getElementById('trxTableBody');
             
-            if (!res.success || res.data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center p-5 text-muted">Belum ada transaksi yang masuk saat ini.</td></tr>`;
-                return;
-            }
-            
-            let html = '';
-            res.data.forEach(trx => {
-                const dateObj = new Date(trx.created_at);
-                const date = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                
-                const isPaid = trx.status === 'PAID';
-                const statusBadge = isPaid 
-                    ? `<span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2">LUNAS (PAID)</span>` 
-                    : `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2"><i class="fa-regular fa-clock me-1"></i> PENDING</span>`;
-                    
-                const actionBtn = isPaid 
-                    ? `<button onclick="updateTrxStatus('${trx.id}', 'PENDING')" class="btn btn-sm btn-outline-danger">Batalkan (Pending)</button>`
-                    : `<button onclick="updateTrxStatus('${trx.id}', 'PAID')" class="btn btn-sm btn-success"><i class="fa-solid fa-check me-1"></i> Approve (Buka Akses)</button>`;
+            try {
+                // Mengambil data transaksi beserta nama siswa dan judul kelas (Fitur Join Table Supabase)
+                const { data, error } = await window.supabaseClient
+                    .from('transactions')
+                    .select(`
+                        id, created_at, status, amount,
+                        users ( full_name ),
+                        courses ( title )
+                    `)
+                    .order('created_at', { ascending: false });
 
-                html += `
-                    <tr>
-                        <td class="ps-4 py-3 small text-muted">${date}</td>
-                        <td class="py-3 fw-semibold text-dark">${trx.student_name}</td>
-                        <td class="py-3 small">${trx.course_title}</td>
-                        <td class="py-3 text-center">${statusBadge}</td>
-                        <td class="pe-4 py-3 text-center">${actionBtn}</td>
-                    </tr>
-                `;
-            });
-            tbody.innerHTML = html;
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center p-5 text-muted">Belum ada transaksi yang masuk saat ini.</td></tr>`;
+                    return;
+                }
+                
+                let html = '';
+                data.forEach(trx => {
+                    const dateObj = new Date(trx.created_at);
+                    const date = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    
+                    // Kita anggap 'PAID' atau 'approved' sebagai status lunas/aktif
+                    const isPaid = trx.status === 'PAID' || trx.status === 'approved';
+                    const statusBadge = isPaid 
+                        ? `<span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2">LUNAS / AKTIF</span>` 
+                        : `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2"><i class="fa-regular fa-clock me-1"></i> PENDING</span>`;
+                        
+                    const actionBtn = isPaid 
+                        ? `<button onclick="updateTrxStatus('${trx.id}', 'pending')" class="btn btn-sm btn-outline-danger">Batalkan Akses</button>`
+                        : `<button onclick="updateTrxStatus('${trx.id}', 'approved')" class="btn btn-sm btn-success"><i class="fa-solid fa-check me-1"></i> Approve (Buka Akses)</button>`;
+
+                    // Mengambil data dari relasi (Join)
+                    const studentName = trx.users ? trx.users.full_name : 'Siswa Tidak Diketahui';
+                    const courseTitle = trx.courses ? trx.courses.title : 'Kelas Tidak Diketahui';
+
+                    html += `
+                        <tr>
+                            <td class="ps-4 py-3 small text-muted">${date}</td>
+                            <td class="py-3 fw-semibold text-dark">${studentName}</td>
+                            <td class="py-3 small">${courseTitle}</td>
+                            <td class="py-3 text-center">${statusBadge}</td>
+                            <td class="pe-4 py-3 text-center">${actionBtn}</td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center p-5 text-danger">Gagal memuat data transaksi.</td></tr>`;
+            }
         };
 
         window.updateTrxStatus = (id, newStatus) => {
-            let msg = newStatus === 'PAID' 
+            let msg = newStatus === 'approved' || newStatus === 'PAID'
                 ? "Akses kelas akan segera dibuka untuk siswa ini." 
                 : "Akses kelas siswa ini akan dikunci kembali.";
 
@@ -346,9 +367,19 @@
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     Swal.showLoading();
-                    const res = await apiCall('updateTransactionStatus', { id, status: newStatus });
-                    if (res.success) { showToast(res.message); loadTransactions(); } 
-                    else { Swal.fire('Gagal', res.error, 'error'); }
+                    try {
+                        const { error } = await window.supabaseClient
+                            .from('transactions')
+                            .update({ status: newStatus })
+                            .eq('id', id);
+                            
+                        if (error) throw error;
+                        
+                        showToast("Status berhasil diubah!"); 
+                        loadTransactions(); // Muat ulang tabel
+                    } catch (err) {
+                        Swal.fire('Gagal', err.message, 'error');
+                    }
                 }
             });
         };
@@ -639,6 +670,7 @@
 </body>
 
 </html>
+
 
 
 
