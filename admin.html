@@ -624,12 +624,31 @@
                 title: 'Beri Nilai Tugas',
                 html: `<p class="mb-3 text-muted">Masukkan nilai (1-100) untuk <b>${studentName}</b></p><input type="number" id="gradeScore" class="form-control text-center fs-4 fw-bold" placeholder="100" min="0" max="100">`,
                 showCancelButton: true, confirmButtonText: 'Simpan Nilai', cancelButtonText: 'Batal', confirmButtonColor: '#10b981',
-                preConfirm: () => { const score = document.getElementById('gradeScore').value; if(!score) Swal.showValidationMessage('Nilai tidak boleh kosong!'); return { id: id, score: score }; }
+                preConfirm: () => { 
+                    const score = document.getElementById('gradeScore').value; 
+                    if(!score) Swal.showValidationMessage('Nilai tidak boleh kosong!'); 
+                    return { id: id, score: parseInt(score) }; 
+                }
             }).then(async (result) => {
-                if (result.isConfirmed) { Swal.showLoading(); const res = await apiCall('gradeAssignment', result.value); if (res.success) { showToast(res.message); loadTabContent(); } else { Swal.fire('Gagal', res.error, 'error'); } }
+                if (result.isConfirmed) { 
+                    Swal.showLoading(); 
+                    try {
+                        // Menyimpan nilai (score) ke tabel submissions di Supabase
+                        const { error } = await window.supabaseClient
+                            .from('submissions')
+                            .update({ score: result.value.score })
+                            .eq('id', result.value.id);
+                            
+                        if (error) throw error;
+                        
+                        showToast('Berhasil memberikan nilai!'); 
+                        loadTabContent(); // Refresh tabel
+                    } catch (err) {
+                        Swal.fire('Gagal', err.message, 'error'); 
+                    }
+                }
             });
         };
-
         window.openEditModal = (mat) => {
             Swal.fire({
                 title: 'Edit Materi',
@@ -678,6 +697,7 @@
 </body>
 
 </html>
+
 
 
 
