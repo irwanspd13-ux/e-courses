@@ -337,29 +337,80 @@
             } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
         };
 
-        // CETAK PDF LANGSUNG DARI BROWSER (KHUSUS KELAS BERBAYAR)
-        window.downloadCertificate = () => {
-            Swal.fire({ title: 'Membuat PDF...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-            setTimeout(() => {
-                try {
-                    const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'landscape' });
-                    // Desain PDF Simpel
-                    doc.setFillColor(79, 70, 229); doc.rect(0, 0, 297, 210, 'F');
-                    doc.setFillColor(255, 255, 255); doc.rect(10, 10, 277, 190, 'F');
-                    doc.setFont('helvetica', 'bold'); doc.setFontSize(30); doc.setTextColor(15, 23, 42); doc.text("SERTIFIKAT KELULUSAN", 148.5, 60, { align: 'center' });
-                    doc.setFontSize(14); doc.setFont('helvetica', 'normal'); doc.text("Diberikan secara resmi kepada:", 148.5, 85, { align: 'center' });
-                    doc.setFontSize(26); doc.setFont('helvetica', 'bold'); doc.setTextColor(79, 70, 229); doc.text(state.user.full_name, 148.5, 105, { align: 'center' });
-                    doc.setFontSize(14); doc.setFont('helvetica', 'normal'); doc.setTextColor(15, 23, 42); doc.text(`Atas keberhasilannya menyelesaikan kelas premium:`, 148.5, 125, { align: 'center' });
-                    doc.setFontSize(20); doc.setFont('helvetica', 'bold'); doc.text(state.activeCourse.title, 148.5, 140, { align: 'center' });
-                    doc.setFontSize(14); doc.setFont('helvetica', 'italic'); doc.text(`Predikat: ${window.coursePredikat} (Nilai Akhir: ${window.courseFinalScore})`, 148.5, 160, { align: 'center' });
-                    doc.save(`Sertifikat_${state.activeCourse.title.replace(/\s+/g, '_')}.pdf`);
-                    Swal.fire('Berhasil!', 'Sertifikat otomatis terunduh ke perangkat Anda.', 'success');
-                } catch(e) { Swal.fire('Gagal', 'Gagal mencetak PDF', 'error'); }
-            }, 1000);
+        // ==========================================
+        // CETAK PDF SERTIFIKAT DENGAN BACKGROUND & QR CODE
+        // ==========================================
+        window.downloadCertificate = async () => {
+            Swal.fire({ title: 'Membuat Sertifikat...', text: 'Mengunduh desain dan QR Code...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            
+            try {
+                // Fungsi untuk memuat gambar dari URL agar bisa masuk ke PDF
+                const loadImage = (url) => {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.crossOrigin = 'Anonymous'; // Mengatasi masalah CORS / Izin Server
+                        img.onload = () => resolve(img);
+                        img.onerror = () => reject(new Error('Gagal memuat gambar: ' + url));
+                        img.src = url;
+                    });
+                };
+
+                // 1. Siapkan Isi QR Code (Data Validasi Kelulusan)
+                const qrText = `Sertifikat Valid EduPro\nNama: ${state.user.full_name}\nLulus Kelas: ${state.activeCourse.title}\nPredikat: ${window.coursePredikat}\nSkor: ${window.courseFinalScore}`;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrText)}`;
+                
+                // Link Background Sertifikat Anda
+                const bgUrl = 'https://i.ibb.co.com/DDSSRmff/background-sertifikat1.png';
+
+                // 2. Download Gambar Background & QR Code secara bersamaan
+                const [bgImg, qrImg] = await Promise.all([
+                    loadImage(bgUrl),
+                    loadImage(qrUrl)
+                ]);
+
+                const { jsPDF } = window.jspdf; 
+                const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); // Ukuran A4 Landscape (297 x 210 mm)
+
+                // 3. Pasang Background (Penuhi seluruh kertas)
+                doc.addImage(bgImg, 'PNG', 0, 0, 297, 210);
+
+                // 4. Pasang Teks Sertifikat (Di tengah halaman)
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(28); doc.setTextColor(15, 23, 42); 
+                doc.text(state.user.full_name, 148.5, 95, { align: 'center' }); // Nama Siswa
+                
+                doc.setFontSize(14); doc.setFont('helvetica', 'normal');
+                doc.text("Telah berhasil menyelesaikan program kelas:", 148.5, 115, { align: 'center' });
+                
+                doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor(79, 70, 229); // Warna Biru/Ungu
+                doc.text(state.activeCourse.title, 148.5, 128, { align: 'center' });
+                
+                doc.setFontSize(14); doc.setFont('helvetica', 'italic'); doc.setTextColor(15, 23, 42);
+                doc.text(`Dengan Predikat: ${window.coursePredikat} (Skor: ${window.courseFinalScore})`, 148.5, 140, { align: 'center' });
+
+                // 5. Pasang QR Code & Nama Direktur di Sudut Kanan Bawah
+                // QR Code (X: 235, Y: 155, Ukuran: 25x25 mm)
+                doc.addImage(qrImg, 'PNG', 235, 155, 25, 25);
+                
+                // Teks Nama Direktur persis di bawah QR Code
+                doc.setFontSize(12); doc.setFont('helvetica', 'bold');
+                doc.text("Kartia Amriani", 247.5, 186, { align: 'center' }); 
+                
+                doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+                doc.text("Direktur Utama", 247.5, 191, { align: 'center' });
+
+                // 6. Simpan File PDF
+                doc.save(`Sertifikat_${state.activeCourse.title.replace(/\s+/g, '_')}.pdf`);
+                Swal.fire('Berhasil!', 'Sertifikat berhasil dicetak dan diunduh!', 'success');
+                
+            } catch(e) { 
+                console.error(e);
+                Swal.fire('Gagal', 'Koneksi terputus saat memuat desain sertifikat. Pastikan internet Anda stabil lalu coba lagi.', 'error'); 
+            }
         };
 
         renderApp();
     </script>
 </body>
 </html>
+
 
