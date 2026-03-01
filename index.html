@@ -77,12 +77,6 @@
         /* Hero Banner Gradient */
         .hero-banner { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); position: relative; overflow: hidden; }
         .hero-glow { position: absolute; top: 0; right: 0; width: 400px; height: 400px; background: radial-gradient(circle, var(--primary-color) 0%, transparent 70%); opacity: 0.4; border-radius: 50%; transform: translate(30%, -30%); }
-        
-        /* Notifikasi Dropdown (BARU) */
-        .notif-dropdown { width: 320px; max-height: 400px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 1rem; padding: 0; }
-        .notif-item { padding: 1rem; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
-        .notif-item:hover { background: #f8fafc; }
-        .notif-item.unread { background: #eff6ff; }
     </style>
      
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -101,14 +95,13 @@
             currentView: localStorage.getItem('edupro_student') ? 'dashboard' : 'catalog', 
             activeCourse: null,
             activeTab: 'materi',
-            courses: [],
-            notifications: [] // Menyimpan notifikasi
+            courses: []
         };
 
         const showToast = (message, icon = 'success') => Swal.fire({ toast: true, position: 'top-end', icon, title: message, showConfirmButton: false, timer: 3000 });
         const formatRupiah = (angka) => new Intl.NumberFormat('id-ID').format(angka);
 
-        const renderApp = async () => {
+        const renderApp = () => {
             const app = document.getElementById('app');
             let html = `
                 <nav class="navbar navbar-expand-lg sticky-top">
@@ -119,39 +112,13 @@
                         <div class="d-flex align-items-center gap-3">`;
             
             if (state.user) { 
-                // FETCH NOTIFIKASI
-                const { data: notifs } = await window.supabaseClient.from('notifications').select('*').eq('student_id', state.user.id).order('created_at', { ascending: false });
-                state.notifications = notifs || [];
-                const unreadCount = state.notifications.filter(n => !n.is_read).length;
-
                 html += `
-                            <div class="dropdown">
-                                <a href="#" class="text-dark position-relative me-2 d-flex align-items-center justify-content-center" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 40px; height: 40px; border-radius: 50%; background: #f1f5f9;">
-                                    <i class="fa-solid fa-bell fs-5"></i>
-                                    ${unreadCount > 0 ? `<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">${unreadCount}</span>` : ''}
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end notif-dropdown mt-3 border-0">
-                                    <li><h6 class="dropdown-header fw-bold bg-white text-dark py-3 border-bottom">Notifikasi Anda</h6></li>
-                                    ${state.notifications.length === 0 ? '<li class="p-4 text-center text-muted small">Belum ada notifikasi</li>' : state.notifications.map(n => `
-                                        <li class="notif-item ${n.is_read ? '' : 'unread'}" onclick="markNotifRead('${n.id}')">
-                                            <div class="d-flex align-items-start">
-                                                <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-circle me-3 mt-1"><i class="fa-solid fa-bell"></i></div>
-                                                <div>
-                                                    <h6 class="mb-1 fw-bold fs-6 text-dark">${n.title}</h6>
-                                                    <p class="mb-0 text-muted small" style="font-size:0.8rem">${n.message}</p>
-                                                </div>
-                                            </div>
-                                        </li>
-                                    `).join('')}
-                                </ul>
-                            </div>
-
-                            <div class="text-end d-none d-sm-block" style="cursor:pointer;" onclick="navigate('profile')">
+                            <div class="text-end d-none d-sm-block">
                                 <div class="fw-bold text-dark lh-1">${state.user.full_name}</div>
-                                <small class="text-primary fw-bold" style="font-size: 0.8rem;"><i class="fa-solid fa-user me-1"></i>Lihat Profil</small>
+                                <small class="text-muted" style="font-size: 0.8rem;">Akun Siswa</small>
                             </div>
-                            <button onclick="handleLogout()" class="btn btn-outline-danger btn-sm rounded-pill px-3 ms-1" title="Keluar">
-                                <i class="fa-solid fa-right-from-bracket"></i>
+                            <button onclick="handleLogout()" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                <i class="fa-solid fa-right-from-bracket me-1"></i> Keluar
                             </button>`; 
             } else { 
                 html += `
@@ -167,18 +134,12 @@
             else if (state.currentView === 'register') renderRegister(mainContent);
             else if (state.currentView === 'dashboard') renderDashboard(mainContent);
             else if (state.currentView === 'courseDetail') renderCourseDetail(mainContent);
-            else if (state.currentView === 'profile') renderProfile(mainContent); // VIEW PROFIL
         };
 
         const navigate = (view, courseData = null) => {
             state.currentView = view;
             if (courseData) { state.activeCourse = courseData; state.activeTab = 'materi'; }
-            renderApp(); window.scrollTo(0,0);
-        };
-
-        window.markNotifRead = async (id) => {
-            await window.supabaseClient.from('notifications').update({ is_read: true }).eq('id', id);
-            renderApp(); // Refresh UI
+            renderApp();
         };
 
         const renderPublicCatalog = async (container) => {
@@ -284,57 +245,6 @@
 
         const handleLogout = () => { localStorage.removeItem('edupro_student'); state.user = null; navigate('catalog'); };
 
-        // HALAMAN PROFIL (BARU)
-        const renderProfile = (container) => {
-            container.innerHTML = `
-                <button onclick="navigate('dashboard')" class="btn btn-link text-muted p-0 mb-4 text-decoration-none fw-semibold">
-                    <i class="fa-solid fa-arrow-left me-2"></i> Kembali ke Dashboard
-                </button>
-                <div class="row justify-content-center">
-                    <div class="col-md-8 col-lg-6">
-                        <div class="card p-4 p-md-5 border-0 shadow-sm">
-                            <div class="text-center mb-4">
-                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 shadow" style="width: 100px; height: 100px; font-size: 2.5rem; font-weight: bold;">
-                                    ${state.user.full_name.charAt(0).toUpperCase()}
-                                </div>
-                                <h3 class="fw-bold text-dark mb-1">${state.user.full_name}</h3>
-                                <p class="text-muted mb-0">NISN / Username: ${state.user.nisn}</p>
-                            </div>
-                            <hr class="my-4 text-muted border-secondary opacity-25">
-                            <h5 class="fw-bold text-dark mb-4"><i class="fa-solid fa-lock text-primary me-2"></i>Ganti Kata Sandi</h5>
-                            <form id="formChangePassword">
-                                <div class="mb-3">
-                                    <label class="form-label text-muted small fw-bold">Kata Sandi Baru</label>
-                                    <input type="password" id="newPass" class="form-control bg-light" required minlength="4">
-                                </div>
-                                <div class="mb-4">
-                                    <label class="form-label text-muted small fw-bold">Konfirmasi Kata Sandi Baru</label>
-                                    <input type="password" id="confirmPass" class="form-control bg-light" required minlength="4">
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm" id="btnSavePass">Simpan Kata Sandi</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('formChangePassword').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const newPass = document.getElementById('newPass').value;
-                const confirmPass = document.getElementById('confirmPass').value;
-                if (newPass !== confirmPass) { Swal.fire('Gagal', 'Kata sandi tidak cocok.', 'error'); return; }
-
-                const btn = document.getElementById('btnSavePass');
-                btn.innerHTML = 'Menyimpan...'; btn.disabled = true;
-                try {
-                    await window.supabaseClient.from('users').update({ password: newPass }).eq('id', state.user.id);
-                    Swal.fire('Berhasil!', 'Kata sandi diperbarui.', 'success');
-                    document.getElementById('formChangePassword').reset();
-                } catch (err) { Swal.fire('Gagal', 'Terjadi kesalahan.', 'error'); } 
-                finally { btn.innerHTML = 'Simpan Kata Sandi'; btn.disabled = false; }
-            });
-        };
-
         const renderDashboard = async (container) => {
             container.innerHTML = `
                 <div class="hero-banner p-5 mb-5 rounded-4 text-white shadow-lg">
@@ -381,44 +291,20 @@
 
         window.openStudentCourseGlobal = (id, hasAccess) => { const course = state.courses.find(c => c.id === id); if (course) hasAccess ? navigate('courseDetail', course) : window.enrollCourse(course.id, course.price); };
         
-        // MODIFIKASI FUNGSI PEMBAYARAN MENGGUNAKAN POP-UP QRIS
         window.enrollCourse = async (courseId, price) => { 
             Swal.fire({ 
                 title: 'Daftar Kelas Ini?', 
-                html: price == 0 ? "Kelas ini 100% Gratis!" : `Investasi: <b>Rp ${formatRupiah(price)}</b><br><br><small class="text-muted">Untuk kelas berbayar, Anda akan diminta melakukan transfer secara manual.</small>`,
+                text: price == 0 ? "Kelas ini 100% Gratis!" : `Investasi: Rp ${formatRupiah(price)}`,
                 icon: 'question', 
                 showCancelButton: true, 
                 confirmButtonColor: '#4338ca',
-                confirmButtonText: price == 0 ? 'Ya, Daftar' : 'Lanjut Pembayaran',
+                confirmButtonText: 'Ya, Daftar Sekarang',
                 cancelButtonText: 'Batal'
             }).then(async (res) => { 
                 if(res.isConfirmed) { 
-                    Swal.showLoading();
-                    const status = price == 0 ? 'approved' : 'pending';
-                    await window.supabaseClient.from('transactions').insert([{ id: 'TRX-'+Date.now(), student_id: state.user.id, course_id: courseId, amount: price, status }]); 
-                    
-                    if (price == 0) {
-                        Swal.fire('Berhasil', 'Anda telah terdaftar di kelas gratis ini!', 'success').then(() => navigate('dashboard')); 
-                    } else {
-                        // Jika Berbayar, Munculkan Instruksi QRIS
-                        Swal.fire({
-                            title: 'Instruksi Pembayaran',
-                            html: `
-                                <div class="text-center">
-                                    <p class="mb-3">Silakan transfer senilai <b>Rp ${formatRupiah(price)}</b> ke rekening/E-Wallet berikut:</p>
-                                    <div class="bg-light p-3 rounded-3 mb-3 border">
-                                        <h5 class="fw-bold mb-1">GOPAY / OVO / DANA</h5>
-                                        <p class="mb-0 fs-5 text-primary fw-bold">0812-3456-7890</p>
-                                        <small class="text-muted">a.n. EduPro Admin</small>
-                                    </div>
-                                    <p class="small text-danger">Setelah transfer, kirimkan bukti foto/screenshot ke WhatsApp Guru agar akses kelas Anda segera dibuka.</p>
-                                </div>
-                            `,
-                            icon: 'info',
-                            confirmButtonText: 'Saya Mengerti',
-                            confirmButtonColor: '#4338ca'
-                        }).then(() => navigate('dashboard'));
-                    }
+                    await window.supabaseClient.from('transactions').insert([{ id: 'TRX-'+Date.now(), student_id: state.user.id, course_id: courseId, amount: price, status: price==0?'approved':'pending' }]); 
+                    renderDashboard(document.getElementById('main-content')); 
+                    Swal.fire('Berhasil', price==0?'Anda telah terdaftar!':'Status Pembayaran Pending, silakan hubungi Guru.', 'success'); 
                 } 
             }); 
         };
@@ -480,6 +366,7 @@
             let predikat = "LULUS"; if (finalScore >= 93) predikat = "SANGAT BAIK"; else if (finalScore >= 80) predikat = "BAIK";
             window.courseFinalScore = finalScore; window.coursePredikat = predikat;
 
+            // Tombol Sertifikat Muncul Jika Lulus
             if (persentase === 100 && totalMateri > 0 && (!quizzesData || quizzesData.length === 0 || scoreData?.passed)) {
                 document.getElementById('certificateContainer').innerHTML = `
                     <button onclick="downloadCertificate()" class="btn btn-success cert-btn px-4 py-3 rounded-pill text-white fw-bold d-flex align-items-center shadow-lg">
@@ -565,6 +452,9 @@
                     return;
                 }
 
+                // ==========================================
+                // SISTEM KUIS MODERN (Pagination & Timer)
+                // ==========================================
                 window.quizQuestions = [...quizzesData].sort(() => Math.random() - 0.5); 
                 window.currentQIndex = 0;
                 window.studentAnswers = {}; 
@@ -692,6 +582,9 @@
             } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
         };
 
+        // ==========================================
+        // CETAK PDF SERTIFIKAT FULL CENTERED + LOGO, TANGGAL & QR CODE
+        // ==========================================
         window.downloadCertificate = async () => {
             Swal.fire({ title: 'Mencetak Sertifikat...', text: 'Mempersiapkan desain resolusi tinggi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
             try {
@@ -700,7 +593,7 @@
                 const certNumber = `CERT-EDU-${shortId}`;
                 const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); 
                 const qrText = `Validasi EduPro\nNomor: ${certNumber}\nTanggal: ${today}\nNama: ${state.user.full_name}\nKelas: ${state.activeCourse.title}\nSkor: ${window.courseFinalScore}`;
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrText)}`;
+                const qrUrl = `https://i.ibb.co.com/4wQBptFN/Qris-Dana-fix.png`;
                 const [bgImg, qrImg, logoImg] = await Promise.all([ loadImage('https://i.ibb.co.com/DDSSRmff/background-sertifikat1.png'), loadImage(qrUrl), loadImage('https://i.ibb.co.com/fYDFWPyM/logo-edu-Pro.png') ]);
                 const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); 
                 doc.addImage(bgImg, 'PNG', 0, 0, 297, 210);
