@@ -376,9 +376,13 @@
         const loadTabContent = async () => {
             const content = document.getElementById('tabContent');
 
-            if (state.activeTab === 'materi') {
-                const resMat = await apiCall('getMaterials', { course_id: state.activeCourse.id });
-                let materials = resMat.data || [];
+           if (state.activeTab === 'materi') {
+                const { data: materialsData, error: matError } = await window.supabaseClient
+                    .from('materials')
+                    .select('*')
+                    .eq('course_id', state.activeCourse.id)
+                    .order('order_number', { ascending: true });
+                let materials = materialsData || [];
 
                 let html = `
                     <div class="card p-4 mb-4 border border-primary border-opacity-25 bg-white"><h5 class="fw-bold mb-3">Tambah Materi / Tugas Baru</h5>
@@ -421,8 +425,9 @@
                     e.preventDefault();
                     const btn = document.getElementById('btnMat'); btn.disabled = true; btn.innerHTML = 'Menyimpan...';
                     const payload = { course_id: state.activeCourse.id, title: document.getElementById('matTitle').value, description: document.getElementById('matDesc').value, content_url: document.getElementById('matUrl').value, order_number: parseInt(document.getElementById('matOrder').value), embed_code: document.getElementById('matEmbed').value };
-                    const res = await apiCall('addMaterial', payload);
-                    if (res.success) { showToast(res.message); loadTabContent(); }
+                    const { error } = await window.supabaseClient.from('materials').insert([payload]);
+                    if (!error) { showToast("Materi berhasil ditambahkan!"); loadTabContent(); } 
+                    else { Swal.fire('Gagal', error.message, 'error'); }
                 });
 
             } else if (state.activeTab === 'tugas') {
@@ -568,11 +573,25 @@
                 showCancelButton: true, confirmButtonText: '<i class="fa-solid fa-save"></i> Simpan', cancelButtonText: 'Batal', confirmButtonColor: '#0ea5e9',
                 preConfirm: () => { return { id: mat.id, title: document.getElementById('editTitle').value, order_number: parseInt(document.getElementById('editOrder').value), description: document.getElementById('editDesc').value, content_url: document.getElementById('editUrl').value, embed_code: document.getElementById('editEmbed').value } }
             }).then(async (result) => {
-                if (result.isConfirmed) { Swal.showLoading(); const res = await apiCall('editMaterial', result.value); if (res.success) { showToast(res.message); loadTabContent(); } }
+                if (result.isConfirmed) { 
+                    Swal.showLoading(); 
+                    const { error } = await window.supabaseClient.from('materials').update({
+                        title: result.value.title, order_number: result.value.order_number, description: result.value.description, content_url: result.value.content_url, embed_code: result.value.embed_code
+                    }).eq('id', result.value.id);
+                    if (!error) { showToast("Materi diperbarui"); loadTabContent(); } else { Swal.fire('Error', error.message, 'error'); }
+                }
             });
         };
 
-        window.deleteMaterial = (id) => { Swal.fire({ title: 'Hapus Materi?', text: "Data tidak bisa dikembalikan!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Hapus' }).then(async (result) => { if (result.isConfirmed) { Swal.showLoading(); const res = await apiCall('deleteMaterial', { id }); if (res.success) { showToast(res.message); loadTabContent(); } } }); };
+        window.deleteMaterial = (id) => { 
+            Swal.fire({ title: 'Hapus Materi?', text: "Data tidak bisa dikembalikan!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Hapus' }).then(async (result) => { 
+                if (result.isConfirmed) { 
+                    Swal.showLoading(); 
+                    const { error } = await window.supabaseClient.from('materials').delete().eq('id', id);
+                    if (!error) { showToast("Materi dihapus"); loadTabContent(); } else { Swal.fire('Error', error.message, 'error'); }
+                } 
+            }); 
+        };
         window.deleteQuiz = (id) => { Swal.fire({ title: 'Hapus Soal?', text: "Soal akan dihapus permanen.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Hapus' }).then(async (result) => { if (result.isConfirmed) { Swal.showLoading(); const res = await apiCall('deleteQuizQuestion', { id }); if (res.success) { showToast(res.message); loadTabContent(); } } }); };
 
         window.exportToPDF = () => {
@@ -588,4 +607,5 @@
 </body>
 
 </html>
+
 
