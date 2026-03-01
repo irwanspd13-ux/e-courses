@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduPro Admin | Dashboard Guru</title>
+    <title>EduPro Admin | Dashboard Guru Premium</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">  
@@ -14,19 +15,65 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
     <style>
-        :root { --primary-color: #0ea5e9; --primary-hover: #0284c7; --bg-color: #f1f5f9; --text-main: #0f172a; --text-muted: #64748b; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
-        .card { border: none; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); transition: transform 0.2s ease, box-shadow 0.2s ease;}
-        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        .btn { font-weight: 600; border-radius: 0.75rem; padding: 0.6rem 1.2rem; }
-        .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); color: white;}
-        .form-control, .form-select { border-radius: 0.75rem; padding: 0.75rem 1rem; border-color: #e2e8f0; }
-        .navbar { background-color: #ffffff; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); padding: 1rem 0; }
-        .navbar-brand { font-weight: 800; color: var(--text-main) !important; font-size: 1.5rem; }
-        .nav-tabs .nav-link { border: none; color: var(--text-muted); font-weight: 600; padding: 1rem 1.5rem; border-bottom: 3px solid transparent; }
-        .nav-tabs .nav-link.active { color: var(--primary-color); background: transparent; border-bottom: 3px solid var(--primary-color); }
-        .price-badge { position: absolute; top: 1rem; right: 1rem; font-size: 0.85rem; font-weight: 700; padding: 0.5rem 0.8rem; border-radius: 2rem; z-index: 2;}
-        .ql-editor { min-height: 150px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem; }
+        :root { 
+            --primary-color: #4338ca; /* Indigo */
+            --primary-hover: #3730a3; 
+            --sidebar-bg: #0f172a; /* Slate 900 */
+            --sidebar-hover: #1e293b;
+            --bg-color: #f8fafc; 
+            --text-main: #0f172a; 
+            --text-muted: #64748b; 
+        }
+        
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; }
+        
+        /* SIDEBAR DASHBOARD MODERN */
+        #sidebar { width: 280px; background-color: var(--sidebar-bg); color: white; min-height: 100vh; position: fixed; left: 0; top: 0; transition: all 0.3s ease; z-index: 1040; display: flex; flex-direction: column; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
+        .main-wrapper { margin-left: 280px; width: calc(100% - 280px); min-height: 100vh; background: var(--bg-color); transition: all 0.3s ease; }
+        
+        .sidebar-link { color: #94a3b8; text-decoration: none; padding: 0.8rem 1.5rem; border-radius: 0.5rem; margin: 0.2rem 1rem; font-weight: 600; display: flex; align-items: center; transition: all 0.2s; }
+        .sidebar-link:hover { color: white; background-color: var(--sidebar-hover); transform: translateX(5px); }
+        .sidebar-link.active { color: white; background: linear-gradient(135deg, var(--primary-color), #6366f1); box-shadow: 0 4px 6px rgba(67, 56, 202, 0.25); }
+        
+        /* Mobile Topbar */
+        .mobile-topbar { display: none; background: white; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1030;}
+        @media (max-width: 991px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.active { transform: translateX(0); }
+            .main-wrapper { margin-left: 0; width: 100%; }
+            .mobile-topbar { display: flex; }
+            .sidebar-overlay { display: none; position: fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index: 1035; }
+            .sidebar-overlay.active { display: block; }
+        }
+
+        /* Modern Cards */
+        .card { border: none; border-radius: 1.25rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; overflow: hidden; background: white; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        
+        /* Premium Buttons */
+        .btn { font-weight: 600; border-radius: 0.75rem; padding: 0.6rem 1.5rem; transition: all 0.2s ease; }
+        .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(67, 56, 202, 0.2); }
+        
+        /* Form Inputs */
+        .form-control, .form-select { border-radius: 0.75rem; padding: 0.75rem 1rem; border: 1px solid #e2e8f0; transition: all 0.2s; }
+        .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(67, 56, 202, 0.1); }
+        
+        /* Sleek Tabs */
+        .nav-tabs { border-bottom: 2px solid #e2e8f0; gap: 0.5rem; }
+        .nav-tabs .nav-link { border: none; color: var(--text-muted); font-weight: 600; padding: 1rem 1.5rem; background: transparent; position: relative; }
+        .nav-tabs .nav-link.active { color: var(--primary-color); background: transparent; }
+        .nav-tabs .nav-link.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 3px; background-color: var(--primary-color); border-radius: 3px 3px 0 0; }
+        
+        /* Progress Bar */
+        .progress { height: 8px; border-radius: 10px; background-color: #e2e8f0; }
+        .progress-bar { border-radius: 10px; }
+
+        /* Rich Text Cleanup */
+        .ql-editor { padding: 1rem; font-family: inherit; font-size: 1rem; line-height: 1.6; color: #334155; min-height: 150px; }
+        .ql-editor img { max-width: 100%; border-radius: 8px; margin: 10px 0; }
+        .ql-toolbar.ql-snow { border-radius: 0.75rem 0.75rem 0 0; border-color: #e2e8f0; background: #f8fafc; padding: 10px; }
+        .ql-container.ql-snow { border-radius: 0 0 0.75rem 0.75rem; border-color: #e2e8f0; }
     </style>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>    
@@ -52,13 +99,67 @@
         const showToast = (message, icon = 'success') => Swal.fire({ toast: true, position: 'top-end', icon, title: message, showConfirmButton: false, timer: 3000 });
         const formatRupiah = (angka) => new Intl.NumberFormat('id-ID').format(angka);
 
+        window.toggleSidebar = () => { 
+            document.getElementById('sidebar').classList.toggle('active'); 
+            document.getElementById('sidebarOverlay').classList.toggle('active'); 
+        };
+
         const renderApp = () => {
             const app = document.getElementById('app');
             let html = '';
+
             if (state.user && state.currentView !== 'login') {
-                html += `<nav class="navbar navbar-expand-lg sticky-top"><div class="container"><a class="navbar-brand" href="#" onclick="navigate('dashboard')"><i class="fa-solid fa-chalkboard-user text-primary"></i> EduPro Admin</a><div class="d-flex align-items-center gap-3"><div class="text-end d-none d-sm-block"><div class="fw-bold">${state.user.full_name}</div><small class="text-muted">Pengajar</small></div><button onclick="handleLogout()" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button></div></div></nav>`;
+                html += `
+                <div class="d-flex w-100">
+                    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+                    
+                    <div id="sidebar">
+                        <div class="p-4 d-flex align-items-center justify-content-center mb-4 mt-2 border-bottom border-secondary border-opacity-25 pb-4">
+                            <i class="fa-solid fa-graduation-cap text-primary fs-2 me-3"></i>
+                            <h4 class="fw-bold mb-0 tracking-wide">EduPro<span class="text-primary">Admin</span></h4>
+                        </div>
+                        
+                        <div class="flex-grow-1">
+                            <small class="text-uppercase text-muted fw-bold px-4 mb-2 d-block" style="font-size: 0.75rem; letter-spacing: 1px;">Menu Utama</small>
+                            <a href="#" onclick="navigate('dashboard')" class="sidebar-link ${state.currentView === 'dashboard' || state.currentView === 'courseDetail' ? 'active' : ''}">
+                                <i class="fa-solid fa-layer-group me-3 fs-5" style="width: 20px;"></i> Kelola Kelas
+                            </a>
+                            <a href="#" onclick="navigate('transactions')" class="sidebar-link ${state.currentView === 'transactions' ? 'active' : ''}">
+                                <i class="fa-solid fa-money-bill-transfer me-3 fs-5" style="width: 20px;"></i> Transaksi
+                            </a>
+                        </div>
+                        
+                        <div class="p-4 border-top border-secondary border-opacity-25 mt-auto">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold me-3 shadow-sm" style="width: 45px; height: 45px; font-size: 1.2rem;">
+                                    ${state.user.full_name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-white">${state.user.full_name}</h6>
+                                    <small class="text-muted">Guru / Pengajar</small>
+                                </div>
+                            </div>
+                            <button onclick="handleLogout()" class="btn btn-danger w-100 rounded-pill fw-bold bg-opacity-10 text-danger border-0 hover-bg-danger mt-2">
+                                <i class="fa-solid fa-right-from-bracket me-2"></i> Akhiri Sesi
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="main-wrapper">
+                        <div class="mobile-topbar">
+                            <div class="d-flex align-items-center">
+                                <i class="fa-solid fa-graduation-cap text-primary fs-3 me-2"></i>
+                                <h5 class="fw-bold mb-0">EduPro</h5>
+                            </div>
+                            <button class="btn btn-light border-0 fs-4 text-dark" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+                        </div>
+                        
+                        <main class="container-fluid p-4 p-md-5" id="main-content"></main>
+                    </div>
+                </div>`;
+            } else {
+                html += `<main class="container py-5 d-flex align-items-center justify-content-center min-vh-100" id="main-content"></main>`;
             }
-            html += `<main class="container py-4 flex-grow-1" id="main-content"></main>`;
             app.innerHTML = html;
 
             const mainContent = document.getElementById('main-content');
@@ -68,20 +169,40 @@
             else if (state.currentView === 'transactions') renderTransactions(mainContent);
         };
 
-        const navigate = (view, courseData = null) => { state.currentView = view; if (courseData) state.activeCourse = courseData; renderApp(); };
+        const navigate = (view, courseData = null) => { state.currentView = view; if (courseData) state.activeCourse = courseData; renderApp(); window.scrollTo(0,0); };
         window.openCourseGlobal = (id) => { const course = state.courses.find(c => c.id === id); if (course) navigate('courseDetail', course); };
 
         const renderLogin = (container) => {
-            container.innerHTML = `<div class="row justify-content-center align-items-center h-100 mt-5"><div class="col-12 col-md-5"><div class="card p-5 text-center"><h2 class="fw-bold text-primary">Admin Panel</h2><p class="text-muted mb-4">Akses Guru</p><form id="loginForm"><div class="mb-3 text-start"><label class="form-label">ID Guru</label><input type="text" id="nisn" class="form-control" required></div><div class="mb-4 text-start"><label class="form-label">Password</label><input type="password" id="password" class="form-control"></div><button type="submit" class="btn btn-primary w-100" id="btnLogin">Masuk</button></form></div></div></div>`;
+            container.innerHTML = `
+                <div class="card p-5 border-0 shadow-lg w-100" style="max-width: 450px;">
+                    <div class="text-center mb-5">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;">
+                            <i class="fa-solid fa-chalkboard-user fa-2x"></i>
+                        </div>
+                        <h2 class="fw-bold text-dark mb-1">Portal Admin</h2>
+                        <p class="text-muted">Login khusus Guru / Pengelola</p>
+                    </div>
+                    <form id="loginForm">
+                        <div class="mb-4 text-start">
+                            <label class="form-label fw-bold small text-muted">ID Guru / Username</label>
+                            <input type="text" id="nisn" class="form-control form-control-lg bg-light" required>
+                        </div>
+                        <div class="mb-5 text-start">
+                            <label class="form-label fw-bold small text-muted">Kata Sandi</label>
+                            <input type="password" id="password" class="form-control form-control-lg bg-light">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm" id="btnLogin">Masuk Sekarang <i class="fa-solid fa-arrow-right ms-2"></i></button>
+                    </form>
+                </div>`;
             document.getElementById('loginForm').addEventListener('submit', async (e) => {
-                e.preventDefault(); const btn = document.getElementById('btnLogin'); btn.innerHTML = 'Memeriksa...'; btn.disabled = true;
+                e.preventDefault(); const btn = document.getElementById('btnLogin'); btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memeriksa...'; btn.disabled = true;
                 try {
-                    const { data: user, error } = await window.supabaseClient.from('users').select('*').eq('nisn', document.getElementById('nisn').value).maybeSingle();
-                    if (!user) Swal.fire('Gagal', 'NIP tidak terdaftar.', 'error');
-                    else if (user.password !== document.getElementById('password').value) Swal.fire('Gagal', 'Password salah.', 'error');
-                    else if (user.role !== 'teacher' && user.role !== 'admin') Swal.fire('Ditolak', 'Khusus Guru.', 'warning');
-                    else { state.user = user; localStorage.setItem('edupro_admin', JSON.stringify(user)); navigate('dashboard'); }
-                } catch (err) {} finally { btn.innerHTML = 'Masuk'; btn.disabled = false; }
+                    const { data: user } = await window.supabaseClient.from('users').select('*').eq('nisn', document.getElementById('nisn').value).maybeSingle();
+                    if (!user) Swal.fire('Akses Ditolak', 'ID Guru tidak ditemukan dalam sistem.', 'error');
+                    else if (user.password !== document.getElementById('password').value) Swal.fire('Gagal', 'Kata sandi tidak sesuai.', 'error');
+                    else if (user.role !== 'teacher' && user.role !== 'admin') Swal.fire('Ditolak', 'Halaman ini khusus untuk Pengajar/Admin.', 'warning');
+                    else { state.user = user; localStorage.setItem('edupro_admin', JSON.stringify(user)); showToast('Berhasil Masuk!'); navigate('dashboard'); }
+                } catch (err) {} finally { btn.innerHTML = 'Masuk Sekarang <i class="fa-solid fa-arrow-right ms-2"></i>'; btn.disabled = false; }
             });
         };
 
@@ -89,52 +210,143 @@
 
         const renderTeacherDashboard = async (container) => {
             container.innerHTML = `
-                <div class="row g-4 mb-4">
-                    <div class="col-lg-6"><div class="card p-4 h-100"><h5 class="fw-bold mb-3">Buat Kelas Baru</h5><form id="formAddCourse"><input type="text" id="cTitle" class="form-control mb-3" placeholder="Judul Kelas" required><textarea id="cDesc" class="form-control mb-3" placeholder="Deskripsi..."></textarea><input type="number" id="cPrice" class="form-control mb-3" placeholder="Harga (0 jika Gratis)"><button class="btn btn-primary w-100">Buat Kelas</button></form></div></div>
-                    <div class="col-lg-6"><div class="card p-4 h-100 bg-primary bg-opacity-10"><h5 class="fw-bold mb-3 text-primary">Daftar Siswa Manual</h5><form id="formAddStudent"><input type="text" id="sName" class="form-control mb-3" placeholder="Nama Siswa" required><input type="text" id="sNisn" class="form-control mb-3" placeholder="NISN" required><button class="btn btn-primary w-100">Tambah Siswa</button></form></div></div>
+                <div class="d-flex justify-content-between align-items-end mb-4">
+                    <div>
+                        <h3 class="fw-bold text-dark mb-1">Dashboard Pengajar</h3>
+                        <p class="text-muted mb-0">Kelola kelas, materi, dan performa siswa Anda.</p>
+                    </div>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mb-3 mt-5"><h4 class="fw-bold mb-0">Katalog Kelas Saya</h4><button onclick="navigate('transactions')" class="btn btn-warning fw-bold text-dark px-4"><i class="fa-solid fa-money-bill-transfer me-2"></i>Kelola Transaksi</button></div>
+                
+                <div class="row g-4 mb-5">
+                    <div class="col-xl-7">
+                        <div class="card p-4 p-md-5 h-100 border-0 shadow-sm">
+                            <h5 class="fw-bold mb-4 d-flex align-items-center"><i class="fa-solid fa-folder-plus text-primary fs-4 me-3"></i> Buat Kelas Baru</h5>
+                            <form id="formAddCourse">
+                                <div class="mb-4"><input type="text" id="cTitle" class="form-control bg-light" placeholder="Nama / Judul Mata Pelajaran" required></div>
+                                <div class="mb-4"><textarea id="cDesc" class="form-control bg-light" placeholder="Deskripsi Singkat..." rows="3"></textarea></div>
+                                <div class="mb-4">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light fw-bold border-end-0 text-muted">Rp</span>
+                                        <input type="number" id="cPrice" class="form-control bg-light border-start-0 ps-0" placeholder="Harga Kelas (Biarkan 0 jika Gratis)">
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary w-100 rounded-pill py-3 shadow-sm">Tambahkan Kelas <i class="fa-solid fa-check ms-2"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-5">
+                        <div class="card p-4 p-md-5 h-100 border-0" style="background: linear-gradient(135deg, rgba(67, 56, 202, 0.05), rgba(14, 165, 233, 0.05));">
+                            <h5 class="fw-bold mb-4 d-flex align-items-center text-primary"><i class="fa-solid fa-user-plus fs-4 me-3"></i> Daftarkan Siswa</h5>
+                            <p class="small text-muted mb-4">Buat akun manual untuk siswa tanpa perlu mereka mendaftar sendiri.</p>
+                            <form id="formAddStudent">
+                                <div class="mb-4"><input type="text" id="sName" class="form-control border-white shadow-sm" placeholder="Nama Lengkap Siswa" required></div>
+                                <div class="mb-4"><input type="text" id="sNisn" class="form-control border-white shadow-sm" placeholder="NISN / Username Siswa" required></div>
+                                <div class="alert alert-info border-0 small py-2 mb-4"><i class="fa-solid fa-circle-info me-2"></i>Password otomatis: <b>123</b></div>
+                                <button class="btn btn-primary w-100 rounded-pill py-3 shadow-sm">Buat Akun Siswa <i class="fa-solid fa-plus ms-2"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <h4 class="fw-bold text-dark mb-4">Katalog Kelas Aktif</h4>
                 <div id="courseList" class="row g-4"></div>`;
 
-            document.getElementById('formAddCourse').addEventListener('submit', async (e) => { e.preventDefault(); await window.supabaseClient.from('courses').insert([{ title: document.getElementById('cTitle').value, description: document.getElementById('cDesc').value, price: document.getElementById('cPrice').value || 0, teacher_id: state.user.id }]); showToast('Kelas dibuat!'); document.getElementById('formAddCourse').reset(); loadTeacherCourses(); });
-            document.getElementById('formAddStudent').addEventListener('submit', async (e) => { e.preventDefault(); await window.supabaseClient.from('users').insert([{ full_name: document.getElementById('sName').value, nisn: document.getElementById('sNisn').value, role: 'student', password: '123' }]); showToast('Siswa ditambahkan!'); document.getElementById('formAddStudent').reset(); });
+            document.getElementById('formAddCourse').addEventListener('submit', async (e) => { e.preventDefault(); await window.supabaseClient.from('courses').insert([{ title: document.getElementById('cTitle').value, description: document.getElementById('cDesc').value, price: document.getElementById('cPrice').value || 0, teacher_id: state.user.id }]); showToast('Kelas berhasil dibuat!'); document.getElementById('formAddCourse').reset(); loadTeacherCourses(); });
+            document.getElementById('formAddStudent').addEventListener('submit', async (e) => { e.preventDefault(); await window.supabaseClient.from('users').insert([{ full_name: document.getElementById('sName').value, nisn: document.getElementById('sNisn').value, role: 'student', password: '123' }]); showToast('Siswa berhasil didaftarkan!'); document.getElementById('formAddStudent').reset(); });
             loadTeacherCourses();
         };
 
         const loadTeacherCourses = async () => {
             const { data: courses } = await window.supabaseClient.from('courses').select('*').eq('teacher_id', state.user.id).order('created_at', { ascending: false });
             state.courses = courses || [];
-            let html = state.courses.length === 0 ? `<div class="col-12 text-center text-muted p-5 bg-white rounded">Belum ada kelas.</div>` : state.courses.map(c => `<div class="col-md-6 col-lg-4"><div class="card card-hover h-100"><span class="price-badge bg-secondary text-white">${c.price > 0 ? 'Rp '+formatRupiah(c.price) : 'Gratis'}</span><div class="card-body d-flex flex-column mt-3"><h5 class="fw-bold">${c.title}</h5><p class="text-muted small flex-grow-1">${c.description}</p><button onclick="openCourseGlobal('${c.id}')" class="btn btn-outline-primary w-100">Kelola Kelas</button></div></div></div>`).join('');
+            let html = state.courses.length === 0 ? `<div class="col-12 text-center text-muted p-5 bg-white rounded-4 shadow-sm">Anda belum membuat kelas apapun.</div>` : state.courses.map(c => `
+                <div class="col-md-6 col-xxl-4">
+                    <div class="card card-hover h-100 border-0 p-2">
+                        <div class="card-body d-flex flex-column p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-4"><i class="fa-solid fa-laptop-file fa-2x"></i></div>
+                                <span class="badge ${c.price > 0 ? 'bg-warning text-dark' : 'bg-success'} px-3 py-2 rounded-pill shadow-sm">${c.price > 0 ? 'Rp '+formatRupiah(c.price) : 'Gratis'}</span>
+                            </div>
+                            <h4 class="fw-bold text-dark mb-2 lh-base">${c.title}</h4>
+                            <p class="text-muted small flex-grow-1 mb-4 line-clamp-2">${c.description}</p>
+                            <button onclick="openCourseGlobal('${c.id}')" class="btn btn-primary w-100 rounded-pill py-2">Kelola Kelas <i class="fa-solid fa-arrow-right ms-2"></i></button>
+                        </div>
+                    </div>
+                </div>`).join('');
             document.getElementById('courseList').innerHTML = html;
         };
 
         const renderTransactions = async (container) => {
-            container.innerHTML = `<button onclick="navigate('dashboard')" class="btn btn-link text-muted p-0 mb-4"><i class="fa-solid fa-arrow-left me-1"></i> Kembali</button><h3 class="fw-bold mb-4">Transaksi Masuk</h3><div class="card border-0 shadow-sm"><div class="table-responsive"><table class="table align-middle mb-0"><thead class="table-light"><tr><th>Waktu</th><th>Siswa</th><th>Kelas</th><th class="text-center">Status</th><th class="text-center">Aksi</th></tr></thead><tbody id="trxTableBody"></tbody></table></div></div>`;
+            container.innerHTML = `
+                <div class="mb-4">
+                    <h3 class="fw-bold text-dark mb-1">Transaksi Masuk</h3>
+                    <p class="text-muted">Kelola persetujuan akses kelas berbayar untuk siswa Anda.</p>
+                </div>
+                <div class="card border-0 shadow-sm overflow-hidden p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-muted small text-uppercase">
+                                <tr><th class="py-4 ps-4">Waktu Daftar</th><th class="py-4">Nama Siswa</th><th class="py-4">Kelas</th><th class="py-4 text-center">Status Akses</th><th class="py-4 pe-4 text-center">Aksi Guru</th></tr>
+                            </thead>
+                            <tbody id="trxTableBody">
+                                <tr><td colspan="5" class="text-center p-5"><span class="spinner-border text-primary"></span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+            
             const { data: trxList } = await window.supabaseClient.from('transactions').select('id, created_at, status, student_id, course_id').order('created_at', { ascending: false });
             const { data: users } = await window.supabaseClient.from('users').select('id, full_name');
             const { data: courses } = await window.supabaseClient.from('courses').select('id, title');
             
             let html = (trxList||[]).map(t => {
-                const date = new Date(t.created_at).toLocaleDateString('id-ID');
-                const student = users.find(u=>u.id === t.student_id)?.full_name || 'Siswa';
-                const course = courses.find(c=>c.id === t.course_id)?.title || 'Kelas';
+                const date = new Date(t.created_at).toLocaleDateString('id-ID', {day: 'numeric', month:'short', year:'numeric'});
+                const student = users?.find(u=>u.id === t.student_id)?.full_name || 'Siswa';
+                const course = courses?.find(c=>c.id === t.course_id)?.title || 'Kelas Terhapus';
                 const isPaid = t.status === 'PAID' || t.status === 'approved';
-                return `<tr><td>${date}</td><td class="fw-bold">${student}</td><td>${course}</td><td class="text-center">${isPaid ? '<span class="badge bg-success">LUNAS</span>' : '<span class="badge bg-warning text-dark">PENDING</span>'}</td><td class="text-center">${isPaid ? `<button onclick="updateTrxStatus('${t.id}', 'pending')" class="btn btn-sm btn-outline-danger">Batalkan</button>` : `<button onclick="updateTrxStatus('${t.id}', 'approved')" class="btn btn-sm btn-success">Approve</button>`}</td></tr>`;
+                return `
+                    <tr>
+                        <td class="py-4 ps-4 text-muted small">${date}</td>
+                        <td class="py-4 fw-bold text-dark">${student}</td>
+                        <td class="py-4 text-muted">${course}</td>
+                        <td class="py-4 text-center">${isPaid ? '<span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill">AKSES TERBUKA</span>' : '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2 rounded-pill"><i class="fa-solid fa-clock me-1"></i> PENDING</span>'}</td>
+                        <td class="py-4 pe-4 text-center">${isPaid ? `<button onclick="updateTrxStatus('${t.id}', 'pending')" class="btn btn-sm btn-outline-danger rounded-pill px-3">Cabut Akses</button>` : `<button onclick="updateTrxStatus('${t.id}', 'approved')" class="btn btn-sm btn-success rounded-pill px-4 shadow-sm"><i class="fa-solid fa-check me-1"></i> Approve</button>`}</td>
+                    </tr>`;
             }).join('');
-            document.getElementById('trxTableBody').innerHTML = html || '<tr><td colspan="5" class="text-center p-4">Tidak ada data</td></tr>';
+            document.getElementById('trxTableBody').innerHTML = html || '<tr><td colspan="5" class="text-center p-5 text-muted">Belum ada transaksi pendaftaran yang masuk.</td></tr>';
         };
 
-        window.updateTrxStatus = async (id, status) => { await window.supabaseClient.from('transactions').update({ status }).eq('id', id); showToast("Status diubah!"); renderTransactions(document.getElementById('main-content')); };
+        window.updateTrxStatus = async (id, status) => { Swal.fire({title: 'Ubah Status?', showCancelButton:true, confirmButtonColor:'#4338ca'}).then(async(r)=>{ if(r.isConfirmed){ Swal.showLoading(); await window.supabaseClient.from('transactions').update({ status }).eq('id', id); showToast("Status berhasil diubah!"); renderTransactions(document.getElementById('main-content')); }})};
 
         const renderCourseDetail = async (container) => {
-            // Fetch updated course detail
             const { data: courseData } = await window.supabaseClient.from('courses').select('*').eq('id', state.activeCourse.id).single();
             if(courseData) state.activeCourse = courseData;
 
             container.innerHTML = `
-                <button onclick="navigate('dashboard')" class="btn btn-link text-muted p-0 mb-4"><i class="fa-solid fa-arrow-left me-1"></i> Kembali</button>
-                <div class="card bg-dark text-white p-5 mb-4 rounded-4" style="background: linear-gradient(to right, #0f172a, #334155) !important;"><h2 class="fw-bold">${state.activeCourse.title}</h2><p class="mb-0 text-white-50">${state.activeCourse.description}</p></div>
-                <ul class="nav nav-tabs mb-4"><li class="nav-item"><button class="nav-link ${state.activeTab === 'materi' ? 'active' : ''}" onclick="switchTab('materi')"><i class="fa-solid fa-book me-2"></i>Materi & Tugas</button></li><li class="nav-item"><button class="nav-link ${state.activeTab === 'tugas' ? 'active' : ''}" onclick="switchTab('tugas')"><i class="fa-solid fa-inbox me-2"></i>Pantau Tugas</button></li><li class="nav-item"><button class="nav-link ${state.activeTab === 'kuis' ? 'active' : ''}" onclick="switchTab('kuis')"><i class="fa-solid fa-list-check me-2"></i>Kelola Kuis</button></li><li class="nav-item"><button class="nav-link ${state.activeTab === 'progress' ? 'active' : ''}" onclick="switchTab('progress')"><i class="fa-solid fa-chart-line me-2"></i>Pantau Progress</button></li></ul>
+                <div class="card bg-dark text-white p-4 p-md-5 mb-5 rounded-4 border-0 shadow-lg position-relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a, var(--primary-color));">
+                    <div class="position-absolute end-0 top-0 h-100 opacity-25" style="width: 300px; background: radial-gradient(circle, white, transparent 70%); transform: translate(30%, -30%);"></div>
+                    <div class="position-relative z-index-1">
+                        <span class="badge bg-white text-dark px-3 py-2 rounded-pill mb-3 shadow-sm">Ruang Manajemen Kelas</span>
+                        <h2 class="fw-bold display-6 mb-2">${state.activeCourse.title}</h2>
+                        <p class="mb-0 fs-6 text-white-50" style="max-width: 700px;">${state.activeCourse.description}</p>
+                    </div>
+                </div>
+                
+                <ul class="nav nav-tabs mb-5 border-0">
+                    <li class="nav-item">
+                        <button class="nav-link fs-6 ${state.activeTab === 'materi' ? 'active' : ''}" onclick="switchTab('materi')"><i class="fa-solid fa-book-open me-2"></i>Materi & Tugas</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fs-6 ${state.activeTab === 'tugas' ? 'active' : ''}" onclick="switchTab('tugas')"><i class="fa-solid fa-clipboard-check me-2"></i>Penilaian Tugas</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fs-6 ${state.activeTab === 'kuis' ? 'active' : ''}" onclick="switchTab('kuis')"><i class="fa-solid fa-file-signature me-2"></i>Kelola Ujian Kuis</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fs-6 ${state.activeTab === 'progress' ? 'active' : ''}" onclick="switchTab('progress')"><i class="fa-solid fa-chart-line me-2"></i>Laporan Nilai</button>
+                    </li>
+                </ul>
                 <div id="tabContent"></div>`;
             loadTabContent();
         };
@@ -149,36 +361,64 @@
                 let materials = materialsData || [];
 
                 let html = `
-                    <div class="card p-4 mb-4 border border-primary border-opacity-25 bg-white"><h5 class="fw-bold mb-3">Tambah Materi / Tugas Baru</h5>
+                    <div class="card p-4 p-md-5 mb-5 border-0 shadow-sm bg-white">
+                        <h5 class="fw-bold mb-4 d-flex align-items-center text-dark"><i class="fa-solid fa-plus-circle text-primary fs-4 me-3"></i> Tambah Materi Pembelajaran</h5>
                         <form id="formAddMaterial">
-                            <div class="row g-3 mb-3"><div class="col-md-9"><input type="text" id="matTitle" class="form-control" placeholder="Judul Materi" required></div><div class="col-md-3"><input type="number" id="matOrder" class="form-control" placeholder="Urutan" value="${materials.length + 1}" required></div></div>
-                            <div class="mb-3"><label class="form-label small fw-bold">Isi Materi (Rich Text)</label>
-                                <div id="matDescEditor" class="bg-white rounded"></div>
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-9"><label class="form-label fw-bold small text-muted">Judul Materi</label><input type="text" id="matTitle" class="form-control bg-light" required></div>
+                                <div class="col-md-3"><label class="form-label fw-bold small text-muted">Urutan</label><input type="number" id="matOrder" class="form-control bg-light" value="${materials.length + 1}" required></div>
                             </div>
-                            <div class="mb-3"><label class="form-label small text-muted">Instruksi Tugas (Opsional)</label><textarea id="matUrl" class="form-control" placeholder="Kosongkan jika tidak perlu kumpul tugas." rows="2"></textarea></div><div class="mb-3"><label class="form-label small text-muted">Kode Iframe (Opsional)</label><textarea id="matEmbed" class="form-control" placeholder="Paste kode <iframe>..." rows="2"></textarea></div><button type="submit" id="btnMat" class="btn btn-primary"><i class="fa-solid fa-save me-2"></i> Simpan Materi</button>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold small text-muted">Isi Materi (Rich Text Editor)</label>
+                                <div id="matDescEditor" class="bg-white"></div>
+                            </div>
+                            <div class="row g-4 mb-5">
+                                <div class="col-md-6"><label class="form-label fw-bold small text-primary"><i class="fa-solid fa-file-arrow-up me-1"></i> Instruksi Pengumpulan Tugas (Opsional)</label><textarea id="matUrl" class="form-control bg-light" placeholder="Isi instruksi jika mewajibkan siswa upload file tugas" rows="3"></textarea></div>
+                                <div class="col-md-6"><label class="form-label fw-bold small text-danger"><i class="fa-brands fa-youtube me-1"></i> Kode Embed Video / Iframe (Opsional)</label><textarea id="matEmbed" class="form-control bg-light" placeholder="Paste kode <iframe> YouTube di sini" rows="3"></textarea></div>
+                            </div>
+                            <button type="submit" id="btnMat" class="btn btn-primary px-5 py-3 rounded-pill shadow-sm"><i class="fa-solid fa-save me-2"></i> Publikasikan Materi</button>
                         </form>
-                    </div><div class="d-flex flex-column gap-3">`;
+                    </div>
+                    
+                    <h5 class="fw-bold text-dark mb-4">Daftar Silabus Materi (${materials.length})</h5>
+                    <div class="d-flex flex-column gap-4">`;
 
-                if (materials.length === 0) { html += `<div class="text-center text-muted p-5 bg-white rounded border">Belum ada materi.</div>`; } 
+                if (materials.length === 0) { html += `<div class="text-center text-muted p-5 bg-white rounded-4 shadow-sm">Belum ada materi pembelajaran yang dipublikasikan.</div>`; } 
                 else {
                     materials.forEach((mat, idx) => {
                         const matStr = JSON.stringify(mat).replace(/"/g, '&quot;');
-                        let embedPreview = mat.embed_code ? `<div class="mt-3 ratio ratio-16x9 bg-light rounded overflow-hidden">${mat.embed_code}</div>` : '';
-                        html += `<div class="card shadow-sm"><div class="card-body"><div class="d-flex flex-column flex-md-row gap-3"><div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 50px; font-size: 1.2rem;">${mat.order_number || idx + 1}</div><div class="flex-grow-1"><h5 class="fw-bold mb-2">${mat.title} ${mat.content_url ? '<span class="badge bg-warning text-dark ms-2"><i class="fa-solid fa-file-arrow-up"></i> Ada Tugas</span>' : ''}</h5><div class="text-muted small border p-3 rounded bg-light mb-0" style="max-height: 150px; overflow-y:auto;">${mat.description}</div></div><div class="d-flex gap-2 w-100 w-md-auto mt-3 mt-md-0 align-items-start"><button onclick="openEditModal(${matStr})" class="btn btn-warning text-white"><i class="fa-solid fa-pen"></i></button><button onclick="deleteMaterial('${mat.id}')" class="btn btn-danger"><i class="fa-solid fa-trash"></i></button></div></div>${embedPreview}</div></div>`;
+                        let embedPreview = mat.embed_code ? `<div class="mt-4 ratio ratio-16x9 bg-dark rounded-4 overflow-hidden shadow-sm">${mat.embed_code}</div>` : '';
+                        html += `
+                            <div class="card shadow-sm border-0 border-start border-primary border-5 p-2">
+                                <div class="card-body p-4">
+                                    <div class="d-flex flex-column flex-md-row gap-4">
+                                        <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 55px; height: 55px; font-size: 1.5rem;">${mat.order_number || idx + 1}</div>
+                                        <div class="flex-grow-1">
+                                            <h4 class="fw-bold text-dark mb-3">${mat.title} ${mat.content_url ? '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning ms-2 fs-6 rounded-pill"><i class="fa-solid fa-star"></i> Tugas Terlampir</span>' : ''}</h4>
+                                            <div class="ql-editor p-0 text-muted bg-light rounded-4 p-4 mb-0" style="max-height: 200px; overflow-y:auto; border: 1px solid #e2e8f0;">${mat.description}</div>
+                                        </div>
+                                        <div class="d-flex flex-row flex-md-column gap-2 mt-3 mt-md-0 align-items-md-end">
+                                            <button onclick="openEditModal(${matStr})" class="btn btn-light text-primary fw-bold px-4 rounded-pill border w-100"><i class="fa-solid fa-pen me-2"></i> Edit</button>
+                                            <button onclick="deleteMaterial('${mat.id}')" class="btn btn-light text-danger fw-bold px-4 rounded-pill border w-100 mt-md-2"><i class="fa-solid fa-trash me-2"></i> Hapus</button>
+                                        </div>
+                                    </div>
+                                    ${embedPreview}
+                                </div>
+                            </div>`;
                     });
                 }
                 html += `</div>`; content.innerHTML = html;
 
-                // Inisialisasi Quill Editor untuk Tambah Materi
-                const quillAdd = new Quill('#matDescEditor', {
-                    theme: 'snow',
-                    modules: { toolbar: [['bold', 'italic', 'underline', 'strike'], ['blockquote'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], [{ 'color': [] }], ['image', 'link']] }
-                });
+                // INIT QUILL MATERI
+                const quillAdd = new Quill('#matDescEditor', { theme: 'snow', modules: { toolbar: [['bold', 'italic', 'underline', 'strike'], ['blockquote'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], [{ 'color': [] }], ['image', 'link']] } });
 
                 document.getElementById('formAddMaterial').addEventListener('submit', async (e) => {
-                    e.preventDefault(); const btn = document.getElementById('btnMat'); btn.disabled = true; btn.innerHTML = 'Menyimpan...';
-                    const payload = { course_id: state.activeCourse.id, title: document.getElementById('matTitle').value, description: quillAdd.root.innerHTML, content_url: document.getElementById('matUrl').value, order_number: parseInt(document.getElementById('matOrder').value), embed_code: document.getElementById('matEmbed').value };
-                    try { await window.supabaseClient.from('materials').insert([payload]); showToast("Materi ditambah!"); loadTabContent(); } catch (err) { Swal.fire('Gagal', err.message, 'error'); btn.disabled = false; btn.innerHTML = 'Simpan Materi'; }
+                    e.preventDefault(); const btn = document.getElementById('btnMat'); btn.innerHTML = 'Menyimpan...'; btn.disabled = true;
+                    const contentHtml = quillAdd.root.innerHTML;
+                    if(quillAdd.getText().trim().length === 0 && !contentHtml.includes('<img')) { Swal.fire('Gagal', 'Isi materi tidak boleh kosong!', 'warning'); btn.innerHTML = '<i class="fa-solid fa-save me-2"></i> Publikasikan Materi'; btn.disabled=false; return;}
+                    
+                    const payload = { course_id: state.activeCourse.id, title: document.getElementById('matTitle').value, description: contentHtml, content_url: document.getElementById('matUrl').value, order_number: parseInt(document.getElementById('matOrder').value), embed_code: document.getElementById('matEmbed').value };
+                    try { await window.supabaseClient.from('materials').insert([payload]); showToast("Materi dipublikasikan!"); loadTabContent(); } catch (err) { Swal.fire('Gagal', err.message, 'error'); btn.innerHTML = '<i class="fa-solid fa-save me-2"></i> Publikasikan Materi'; btn.disabled=false; }
                 });
             } 
             else if (state.activeTab === 'tugas') {
@@ -186,14 +426,28 @@
                 const { data: usersData } = await window.supabaseClient.from('users').select('id, full_name');
                 const { data: materialsData } = await window.supabaseClient.from('materials').select('id, title');
                 
-                let html = `<div class="card border-0 shadow-sm overflow-hidden mb-4"><div class="card-header bg-white p-4 border-bottom"><h5 class="fw-bold mb-0">Tugas Masuk</h5></div><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light text-muted small"><tr><th class="ps-4 py-3">Nama Siswa</th><th class="py-3">Materi Tugas</th><th class="py-3 text-center">File</th><th class="py-3 text-center">Nilai</th><th class="pe-4 py-3 text-center">Aksi</th></tr></thead><tbody>`;
-                if (!subData || subData.length === 0) { html += `<tr><td colSpan="5" class="text-center p-5 text-muted">Belum ada tugas masuk.</td></tr>`; } 
+                let html = `
+                    <div class="card border-0 shadow-sm overflow-hidden mb-5">
+                        <div class="card-header bg-white p-4 border-bottom d-flex align-items-center"><i class="fa-solid fa-inbox fs-4 text-primary me-3"></i><h5 class="fw-bold mb-0">Tugas Siswa Masuk</h5></div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-muted small text-uppercase"><tr><th class="py-4 ps-4">Nama Siswa</th><th class="py-4">Materi Tugas</th><th class="py-4 text-center">File Kiriman</th><th class="py-4 text-center">Nilai Saat Ini</th><th class="pe-4 py-4 text-center">Tindakan</th></tr></thead>
+                                <tbody>`;
+                
+                if (!subData || subData.length === 0) { html += `<tr><td colSpan="5" class="text-center p-5 text-muted">Siswa belum mengumpulkan tugas untuk kelas ini.</td></tr>`; } 
                 else {
                     subData.forEach(sub => {
-                        let scoreBadge = sub.score !== null ? `<span class="badge bg-success bg-opacity-10 text-success px-3 py-2">${sub.score} / 100</span>` : `<span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2">Belum Dinilai</span>`;
-                        let studentName = usersData?.find(u => u.id === sub.student_id)?.full_name || 'Siswa'; 
-                        let materialTitle = materialsData?.find(m => m.id === sub.material_id)?.title || 'Materi';
-                        html += `<tr><td class="ps-4 py-3 fw-semibold text-dark">${studentName}</td><td class="py-3"><span class="small text-muted">${materialTitle}</span></td><td class="py-3 text-center"><a href="${sub.file_url}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill"><i class="fa-solid fa-link me-1"></i> Buka</a></td><td class="py-3 text-center">${scoreBadge}</td><td class="pe-4 py-3 text-center"><button onclick="gradeSubmission('${sub.id}', '${studentName}')" class="btn btn-sm btn-success">Beri Nilai</button></td></tr>`;
+                        let scoreBadge = sub.score !== null ? `<span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill fs-6">${sub.score} / 100</span>` : `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2 rounded-pill"><i class="fa-solid fa-hourglass-half me-1"></i> Menunggu Dinilai</span>`;
+                        let studentName = usersData?.find(u => u.id === sub.student_id)?.full_name || 'Siswa Terhapus'; 
+                        let materialTitle = materialsData?.find(m => m.id === sub.material_id)?.title || 'Materi Terhapus';
+                        html += `
+                            <tr>
+                                <td class="ps-4 py-4 fw-bold text-dark">${studentName}</td>
+                                <td class="py-4"><span class="text-muted">${materialTitle}</span></td>
+                                <td class="py-4 text-center"><a href="${sub.file_url}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="fa-solid fa-cloud-arrow-down me-1"></i> Unduh File</a></td>
+                                <td class="py-4 text-center">${scoreBadge}</td>
+                                <td class="pe-4 py-4 text-center"><button onclick="gradeSubmission('${sub.id}', '${studentName}')" class="btn btn-sm btn-success rounded-pill px-4 shadow-sm"><i class="fa-solid fa-pen-to-square me-1"></i> Beri Nilai</button></td>
+                            </tr>`;
                     });
                 }
                 content.innerHTML = html + `</tbody></table></div></div>`;
@@ -201,33 +455,93 @@
             else if (state.activeTab === 'kuis') {
                 const { data: quizzesData } = await window.supabaseClient.from('quizzes').select('*').eq('course_id', state.activeCourse.id);
                 const quizzes = quizzesData || [];
+                
                 let html = `
-                    <div class="row mb-4">
-                        <div class="col-md-5">
-                            <div class="card p-4 bg-white border-0 shadow-sm h-100">
-                                <h6 class="fw-bold"><i class="fa-regular fa-clock me-2 text-primary"></i>Pengaturan Waktu Ujian</h6>
-                                <p class="small text-muted mb-3">Waktu mundur akan berjalan otomatis untuk siswa. (Default: 15 Menit).</p>
-                                <div class="input-group">
-                                    <input type="number" id="quizDurationInput" class="form-control" value="${state.activeCourse.quiz_duration || 15}" min="1">
-                                    <span class="input-group-text bg-light">Menit</span>
-                                    <button class="btn btn-primary" onclick="saveQuizDuration()"><i class="fa-solid fa-save"></i></button>
+                    <div class="row g-4 mb-5">
+                        <div class="col-xl-4">
+                            <div class="card p-4 p-md-5 bg-white border-0 shadow-sm h-100" style="background: linear-gradient(135deg, rgba(67, 56, 202, 0.05), rgba(255, 255, 255, 1));">
+                                <h5 class="fw-bold text-dark mb-2"><i class="fa-regular fa-clock me-2 text-primary fs-4"></i>Durasi Ujian</h5>
+                                <p class="small text-muted mb-4">Waktu mundur (Timer) akan berjalan otomatis saat siswa memulai ujian akhir.</p>
+                                <div class="input-group input-group-lg shadow-sm">
+                                    <input type="number" id="quizDurationInput" class="form-control text-center fw-bold bg-white" value="${state.activeCourse.quiz_duration || 15}" min="1">
+                                    <span class="input-group-text bg-light text-muted fw-bold border-start-0">Menit</span>
+                                    <button class="btn btn-primary px-4" onclick="saveQuizDuration()"><i class="fa-solid fa-save"></i></button>
                                 </div>
                             </div>
                         </div>
+                        
+                        <div class="col-xl-8">
+                            <div class="card p-4 p-md-5 border-0 shadow-sm h-100">
+                                <h5 class="fw-bold mb-4 d-flex align-items-center text-dark"><i class="fa-solid fa-file-circle-plus text-primary fs-4 me-3"></i> Tambah Bank Soal</h5>
+                                <form id="formAddQuiz">
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold small text-muted">Pertanyaan Ujian (Rich Text)</label>
+                                        <div id="quizQuestionEditor" class="bg-white rounded" style="min-height: 120px;"></div>
+                                    </div>
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-md-6"><div class="input-group"><span class="input-group-text bg-light fw-bold text-dark">A</span><input type="text" id="qA" class="form-control bg-light" required></div></div>
+                                        <div class="col-md-6"><div class="input-group"><span class="input-group-text bg-light fw-bold text-dark">B</span><input type="text" id="qB" class="form-control bg-light" required></div></div>
+                                        <div class="col-md-6"><div class="input-group"><span class="input-group-text bg-light fw-bold text-dark">C</span><input type="text" id="qC" class="form-control bg-light" required></div></div>
+                                        <div class="col-md-6"><div class="input-group"><span class="input-group-text bg-light fw-bold text-dark">D</span><input type="text" id="qD" class="form-control bg-light" required></div></div>
+                                    </div>
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6 mb-3 mb-md-0">
+                                            <select id="qCorrect" class="form-select bg-light fw-bold text-success border-success" required>
+                                                <option value="" disabled selected>-- Tentukan Kunci Jawaban --</option>
+                                                <option value="a">Jawaban Benar: A</option><option value="b">Jawaban Benar: B</option><option value="c">Jawaban Benar: C</option><option value="d">Jawaban Benar: D</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <button type="submit" id="btnQuiz" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm"><i class="fa-solid fa-plus me-2"></i> Masukkan ke Bank Soal</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card p-4 mb-4 border border-info border-opacity-25 bg-white"><h5 class="fw-bold mb-1">Tambah Soal Kuis</h5><form id="formAddQuiz"><div class="mb-3"><textarea id="qQuestion" class="form-control" placeholder="Pertanyaan..." required></textarea></div><div class="row g-3 mb-3"><div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">A</span><input type="text" id="qA" class="form-control" required></div></div><div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">B</span><input type="text" id="qB" class="form-control" required></div></div><div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">C</span><input type="text" id="qC" class="form-control" required></div></div><div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">D</span><input type="text" id="qD" class="form-control" required></div></div></div><div class="mb-3"><select id="qCorrect" class="form-select" required><option value="" disabled selected>-- Pilih Kunci Jawaban --</option><option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option></select></div><button type="submit" id="btnQuiz" class="btn btn-info text-white">Tambahkan Soal</button></form></div><h5 class="fw-bold mb-3 mt-4">Daftar Soal Kuis (${quizzes.length})</h5><div class="d-flex flex-column gap-3">`;
+                    
+                    <h5 class="fw-bold text-dark mb-4">Daftar Soal Ujian (${quizzes.length})</h5>
+                    <div class="d-flex flex-column gap-4">`;
                 
-                quizzes.forEach((q, idx) => { html += `<div class="card shadow-sm"><div class="card-body"><div class="d-flex justify-content-between mb-3"><h6 class="fw-bold mb-0"><span class="badge bg-secondary me-2">Soal ${idx + 1}</span> ${q.question}</h6><button onclick="deleteQuiz('${q.id}')" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></div><div class="row g-2 small"><div class="col-md-6"><div class="p-2 border rounded ${q.correct === 'a' ? 'bg-success bg-opacity-10 border-success fw-bold' : 'bg-light'}">A. ${q.a}</div></div><div class="col-md-6"><div class="p-2 border rounded ${q.correct === 'b' ? 'bg-success bg-opacity-10 border-success fw-bold' : 'bg-light'}">B. ${q.b}</div></div><div class="col-md-6"><div class="p-2 border rounded ${q.correct === 'c' ? 'bg-success bg-opacity-10 border-success fw-bold' : 'bg-light'}">C. ${q.c}</div></div><div class="col-md-6"><div class="p-2 border rounded ${q.correct === 'd' ? 'bg-success bg-opacity-10 border-success fw-bold' : 'bg-light'}">D. ${q.d}</div></div></div></div></div>`; });
+                if (quizzes.length === 0) { html += `<div class="text-center text-muted p-5 bg-white rounded-4 shadow-sm">Belum ada soal ujian untuk kelas ini.</div>`; }
+                else {
+                    quizzes.forEach((q, idx) => { 
+                        html += `
+                            <div class="card shadow-sm border-0 border-start border-secondary border-5 p-2">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start mb-4">
+                                        <div class="d-flex gap-3 align-items-start w-100 pe-4">
+                                            <span class="badge bg-secondary rounded-pill px-3 py-2 fs-6">Soal ${idx + 1}</span>
+                                            <div class="ql-editor p-0 text-dark fs-5 fw-bold w-100" style="min-height: auto;">${q.question}</div>
+                                        </div>
+                                        <button onclick="deleteQuiz('${q.id}')" class="btn btn-light text-danger rounded-circle p-3 shadow-sm" style="width: 50px; height: 50px;"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6"><div class="p-3 border rounded-3 ${q.correct === 'a' ? 'bg-success bg-opacity-10 border-success text-success fw-bold shadow-sm' : 'bg-light text-muted'}"><strong class="me-2">A.</strong> ${q.a} ${q.correct === 'a' ? '<i class="fa-solid fa-circle-check float-end fs-5"></i>' : ''}</div></div>
+                                        <div class="col-md-6"><div class="p-3 border rounded-3 ${q.correct === 'b' ? 'bg-success bg-opacity-10 border-success text-success fw-bold shadow-sm' : 'bg-light text-muted'}"><strong class="me-2">B.</strong> ${q.b} ${q.correct === 'b' ? '<i class="fa-solid fa-circle-check float-end fs-5"></i>' : ''}</div></div>
+                                        <div class="col-md-6"><div class="p-3 border rounded-3 ${q.correct === 'c' ? 'bg-success bg-opacity-10 border-success text-success fw-bold shadow-sm' : 'bg-light text-muted'}"><strong class="me-2">C.</strong> ${q.c} ${q.correct === 'c' ? '<i class="fa-solid fa-circle-check float-end fs-5"></i>' : ''}</div></div>
+                                        <div class="col-md-6"><div class="p-3 border rounded-3 ${q.correct === 'd' ? 'bg-success bg-opacity-10 border-success text-success fw-bold shadow-sm' : 'bg-light text-muted'}"><strong class="me-2">D.</strong> ${q.d} ${q.correct === 'd' ? '<i class="fa-solid fa-circle-check float-end fs-5"></i>' : ''}</div></div>
+                                    </div>
+                                </div>
+                            </div>`; 
+                    });
+                }
                 content.innerHTML = html + `</div>`;
 
+                // INIT QUILL UNTUK KUIS
+                const quillQuiz = new Quill('#quizQuestionEditor', { theme: 'snow', modules: { toolbar: [['bold', 'italic', 'underline', 'strike'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], [{ 'color': [] }, { 'background': [] }], ['image', 'link']] } });
+
                 document.getElementById('formAddQuiz').addEventListener('submit', async (e) => {
-                    e.preventDefault(); 
-                    const payload = { course_id: state.activeCourse.id, question: document.getElementById('qQuestion').value, a: document.getElementById('qA').value, b: document.getElementById('qB').value, c: document.getElementById('qC').value, d: document.getElementById('qD').value, correct: document.getElementById('qCorrect').value };
-                    await window.supabaseClient.from('quizzes').insert([payload]); showToast("Soal ditambahkan!"); loadTabContent(); 
+                    e.preventDefault(); const btn = document.getElementById('btnQuiz'); btn.disabled = true;
+                    const questionHtml = quillQuiz.root.innerHTML;
+                    if(quillQuiz.getText().trim().length === 0 && !questionHtml.includes('<img')) { Swal.fire('Gagal', 'Pertanyaan ujian tidak boleh kosong!', 'warning'); btn.disabled=false; return;}
+                    
+                    const payload = { course_id: state.activeCourse.id, question: questionHtml, a: document.getElementById('qA').value, b: document.getElementById('qB').value, c: document.getElementById('qC').value, d: document.getElementById('qD').value, correct: document.getElementById('qCorrect').value };
+                    try { await window.supabaseClient.from('quizzes').insert([payload]); showToast("Soal masuk ke Bank Soal!"); loadTabContent(); } catch (err) { Swal.fire('Gagal', err.message, 'error'); btn.disabled=false; }
                 });
             } 
             else if (state.activeTab === 'progress') {
-                content.innerHTML = `<div class="text-center p-5"><div class="spinner-border text-primary"></div></div>`;
+                content.innerHTML = `<div class="text-center p-5"><span class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></span><p class="mt-3 text-muted">Merekap Laporan Nilai...</p></div>`;
                 const { data: trxData } = await window.supabaseClient.from('transactions').select('*').eq('course_id', state.activeCourse.id);
                 const { data: usersData } = await window.supabaseClient.from('users').select('id, full_name, nisn');
                 let students = usersData?.filter(u => trxData?.some(t => t.student_id === u.id && (t.status === 'PAID' || t.status === 'approved'))) || [];
@@ -237,18 +551,36 @@
                 const { data: pData } = matIds.length > 0 ? await window.supabaseClient.from('progress').select('*').in('material_id', matIds) : {data:[]};
                 const { data: scoresData } = await window.supabaseClient.from('quiz_scores').select('*').eq('course_id', state.activeCourse.id);
 
-                let html = `<div class="card border-0 shadow-sm overflow-hidden"><div class="card-header bg-white p-4 d-flex justify-content-between border-bottom"><h5 class="fw-bold mb-0">Laporan Siswa</h5><button onclick="exportToPDF()" class="btn btn-danger btn-sm"><i class="fa-solid fa-file-pdf"></i> Cetak PDF</button></div><div class="table-responsive"><table class="table align-middle" id="progressTable"><thead class="table-light small"><tr><th class="ps-4">Siswa</th><th>Materi Selesai</th><th class="text-center">Nilai Kuis</th><th class="pe-4 text-center">Status</th></tr></thead><tbody>`;
+                let html = `
+                    <div class="card border-0 shadow-sm overflow-hidden mb-5">
+                        <div class="card-header bg-white p-4 d-flex justify-content-between align-items-center border-bottom">
+                            <div><h5 class="fw-bold mb-1 text-dark">Laporan Ketuntasan Siswa</h5><p class="text-muted small mb-0">Total Modul Pembelajaran: ${matIds.length}</p></div>
+                            <button onclick="exportToPDF()" class="btn btn-danger rounded-pill px-4 shadow-sm fw-bold"><i class="fa-solid fa-file-pdf me-2"></i> Cetak Laporan</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="progressTable">
+                                <thead class="bg-light text-muted small text-uppercase"><tr><th class="py-4 ps-4">Identitas Siswa</th><th class="py-4">Penyelesaian Materi</th><th class="py-4 text-center">Skor Ujian Akhir</th><th class="py-4 pe-4 text-center">Status Kelulusan</th></tr></thead>
+                                <tbody>`;
                 
-                if (students.length === 0) { html += `<tr><td colSpan="4" class="text-center p-4">Belum ada siswa.</td></tr>`; } 
+                if (students.length === 0) { html += `<tr><td colSpan="4" class="text-center p-5 text-muted">Belum ada siswa yang terdaftar di kelas ini.</td></tr>`; } 
                 else {
                     students.forEach(student => {
                         const compCount = pData?.filter(p => p.student_id === student.id).length || 0;
                         const perc = matIds.length === 0 ? 0 : Math.round((compCount / matIds.length) * 100);
                         const sScore = scoresData?.filter(s => s.student_id === student.id).map(s=>s.score) || [];
-                        const best = sScore.length > 0 ? Math.max(...sScore) : 0;
-                        const isLulus = (perc === 100 && matIds.length > 0) && best >= 80;
+                        const best = sScore.length > 0 ? Math.max(...sScore) : null;
+                        const isLulus = (perc === 100 && matIds.length > 0) && best !== null && best >= 80;
 
-                        html += `<tr><td class="ps-4 fw-semibold">${student.full_name}<br><small class="text-muted fw-normal">${student.nisn}</small></td><td><div class="progress mb-1" style="height:6px;"><div class="progress-bar bg-success" style="width: ${perc}%"></div></div><small>${perc}% (${compCount}/${matIds.length})</small></td><td class="text-center fw-bold">${sScore.length>0 ? best : '-'}</td><td class="pe-4 text-center">${isLulus ? `<span class="badge bg-success">LULUS</span>` : `<span class="badge bg-warning">BELUM</span>`}</td></tr>`;
+                        html += `
+                            <tr>
+                                <td class="py-4 ps-4 fw-bold text-dark">${student.full_name}<br><small class="text-muted fw-normal">${student.nisn}</small></td>
+                                <td class="py-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-1"><small class="text-muted fw-bold" style="font-size: 0.75rem;">${compCount} dari ${matIds.length} Modul</small><small class="text-primary fw-bold" style="font-size: 0.75rem;">${perc}%</small></div>
+                                    <div class="progress" style="height:6px;"><div class="progress-bar bg-success" style="width: ${perc}%"></div></div>
+                                </td>
+                                <td class="py-4 text-center ${best !== null ? 'fs-5 fw-bold text-primary' : 'text-muted'}">${best !== null ? best : '-'}</td>
+                                <td class="py-4 pe-4 text-center">${isLulus ? `<span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill"><i class="fa-solid fa-award me-1"></i> LULUS</span>` : `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 rounded-pill"><i class="fa-solid fa-spinner fa-spin me-1"></i> BELUM</span>`}</td>
+                            </tr>`;
                     });
                 }
                 content.innerHTML = html + `</tbody></table></div></div>`;
@@ -256,36 +588,35 @@
         };
 
         window.saveQuizDuration = async () => {
-            const val = document.getElementById('quizDurationInput').value;
-            Swal.showLoading();
+            const val = document.getElementById('quizDurationInput').value; Swal.showLoading();
             try {
                 const { error } = await window.supabaseClient.from('courses').update({ quiz_duration: parseInt(val) }).eq('id', state.activeCourse.id);
-                if(error) throw error;
-                state.activeCourse.quiz_duration = parseInt(val);
-                showToast("Waktu Ujian Diperbarui!");
-            } catch (err) { Swal.fire('Gagal', 'Pastikan Anda sudah membuat kolom quiz_duration (int4) di tabel courses pada Supabase!', 'error'); }
+                if(error) throw error; state.activeCourse.quiz_duration = parseInt(val); showToast("Durasi Ujian Diperbarui!");
+            } catch (err) { Swal.fire('Gagal', 'Pastikan kolom quiz_duration sudah dibuat di Supabase!', 'error'); }
         };
 
         window.openEditModal = (mat) => {
             Swal.fire({ 
-                title: 'Edit Materi', width: '700px',
-                html: `<div class="text-start"><div class="mb-3"><label class="small fw-bold">Judul</label><input type="text" id="editTitle" class="form-control" value="${mat.title}"></div><div class="mb-3"><label class="small fw-bold">Urutan</label><input type="number" id="editOrder" class="form-control" value="${mat.order_number}"></div><div class="mb-3"><label class="small fw-bold">Isi Materi</label><div id="editDescEditor" class="bg-white"></div></div><div class="mb-3"><label class="small fw-bold text-primary">Instruksi Tugas</label><textarea id="editUrl" class="form-control">${mat.content_url || ''}</textarea></div></div>`, 
-                showCancelButton: true, confirmButtonText: 'Simpan',
+                title: 'Edit Konten Materi', width: '800px',
+                html: `<div class="text-start"><div class="row g-3 mb-4"><div class="col-md-9"><label class="small fw-bold text-muted mb-1">Judul Materi</label><input type="text" id="editTitle" class="form-control" value="${mat.title}"></div><div class="col-md-3"><label class="small fw-bold text-muted mb-1">Urutan</label><input type="number" id="editOrder" class="form-control" value="${mat.order_number}"></div></div><div class="mb-4"><label class="small fw-bold text-muted mb-1">Isi Materi</label><div id="editDescEditor" class="bg-white"></div></div><div class="mb-3"><label class="small fw-bold text-primary mb-1">Instruksi Tugas</label><textarea id="editUrl" class="form-control" rows="2">${mat.content_url || ''}</textarea></div></div>`, 
+                showCancelButton: true, confirmButtonText: 'Simpan Perubahan', confirmButtonColor: '#4338ca',
                 didOpen: () => {
-                    // Inisialisasi Quill di dalam Pop-up Edit
                     window.quillEdit = new Quill('#editDescEditor', { theme: 'snow', modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['image', 'link']] } });
                     window.quillEdit.root.innerHTML = mat.description;
                 },
                 preConfirm: () => { return { id: mat.id, title: document.getElementById('editTitle').value, order_number: parseInt(document.getElementById('editOrder').value), description: window.quillEdit.root.innerHTML, content_url: document.getElementById('editUrl').value } }
             }).then(async (result) => {
-                if (result.isConfirmed) { await window.supabaseClient.from('materials').update({ title: result.value.title, order_number: result.value.order_number, description: result.value.description, content_url: result.value.content_url }).eq('id', result.value.id); showToast("Materi diperbarui"); loadTabContent(); }
+                if (result.isConfirmed) { Swal.showLoading(); await window.supabaseClient.from('materials').update({ title: result.value.title, order_number: result.value.order_number, description: result.value.description, content_url: result.value.content_url }).eq('id', result.value.id); showToast("Materi sukses diperbarui"); loadTabContent(); }
             });
         };
 
-        window.gradeSubmission = (id, sName) => { Swal.fire({ title: 'Beri Nilai', html: `<p class="mb-3">Nilai untuk <b>${sName}</b></p><input type="number" id="gradeScore" class="form-control text-center fs-4 fw-bold">`, showCancelButton: true, confirmButtonText: 'Simpan', preConfirm: () => parseInt(document.getElementById('gradeScore').value) }).then(async (res) => { if (res.isConfirmed) { await window.supabaseClient.from('submissions').update({ score: res.value }).eq('id', id); showToast('Nilai disimpan!'); loadTabContent(); } }); };
-        window.deleteMaterial = (id) => { Swal.fire({ title: 'Hapus?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Hapus', confirmButtonColor: '#d33' }).then(async (res) => { if (res.isConfirmed) { await window.supabaseClient.from('materials').delete().eq('id', id); showToast("Terhapus"); loadTabContent(); } }); };
-        window.deleteQuiz = (id) => { Swal.fire({ title: 'Hapus Soal?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Hapus', confirmButtonColor: '#d33' }).then(async (res) => { if (res.isConfirmed) { await window.supabaseClient.from('quizzes').delete().eq('id', id); showToast("Terhapus"); loadTabContent(); } }); };
-        window.exportToPDF = () => { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.text('LAPORAN NILAI SISWA', 14, 20); doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text(`Kelas : ${state.activeCourse.title}`, 14, 28); doc.autoTable({ html: '#progressTable', startY: 35, theme: 'grid', headStyles: { fillColor: [14, 165, 233] } }); doc.save(`Laporan_${state.activeCourse.title}.pdf`); };
+        window.gradeSubmission = (id, sName) => { Swal.fire({ title: 'Penilaian Tugas', html: `<p class="mb-4 text-muted">Masukkan angka 0 - 100 untuk <b>${sName}</b></p><input type="number" id="gradeScore" class="form-control form-control-lg text-center fs-2 fw-bold text-primary" placeholder="100" min="0" max="100">`, showCancelButton: true, confirmButtonText: 'Simpan Nilai', confirmButtonColor: '#10b981', preConfirm: () => parseInt(document.getElementById('gradeScore').value) }).then(async (res) => { if (res.isConfirmed) { Swal.showLoading(); await window.supabaseClient.from('submissions').update({ score: res.value }).eq('id', id); showToast('Nilai berhasil disimpan!'); loadTabContent(); } }); };
+        
+        window.deleteMaterial = (id) => { Swal.fire({ title: 'Hapus Materi?', text:'Materi akan hilang selamanya.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus', confirmButtonColor: '#ef4444' }).then(async (res) => { if (res.isConfirmed) { Swal.showLoading(); await window.supabaseClient.from('materials').delete().eq('id', id); showToast("Materi dihapus"); loadTabContent(); } }); };
+        
+        window.deleteQuiz = (id) => { Swal.fire({ title: 'Hapus Soal Kuis?', text:'Soal akan dikeluarkan dari bank soal.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus', confirmButtonColor: '#ef4444' }).then(async (res) => { if (res.isConfirmed) { Swal.showLoading(); await window.supabaseClient.from('quizzes').delete().eq('id', id); showToast("Soal dihapus"); loadTabContent(); } }); };
+        
+        window.exportToPDF = () => { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.setTextColor(15, 23, 42); doc.text('LAPORAN EVALUASI SISWA', 14, 20); doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(100, 116, 139); doc.text(`Kelas : ${state.activeCourse.title}`, 14, 28); doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 34); doc.autoTable({ html: '#progressTable', startY: 42, theme: 'grid', headStyles: { fillColor: [67, 56, 202] }, styles: { fontSize: 10 } }); doc.save(`Laporan_Nilai_${state.activeCourse.title.replace(/\s+/g,'_')}.pdf`); };
 
         renderApp();
     </script>
