@@ -3,186 +3,293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduPro LMS | Portal Pembelajaran</title>
+    <title>EduPro LMS | Portal Pembelajaran Premium</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
+    
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
     <style>
-        :root { --primary-color: #4f46e5; --primary-hover: #4338ca; --bg-color: #f8fafc; --text-main: #0f172a; --text-muted: #64748b; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
-        .navbar { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .card { border: none; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); transition: transform 0.2s; background: white; }
-        .card-hover:hover { transform: translateY(-5px); }
-        .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); }
-        .btn-primary:hover { background-color: var(--primary-hover); }
-        .nav-link { font-weight: 500; color: var(--text-muted); cursor: pointer; }
-        .nav-link:hover, .nav-link.active { color: var(--primary-color); }
-        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        :root { 
+            --primary-color: #4338ca; /* Deep Indigo */
+            --primary-hover: #3730a3; 
+            --secondary-color: #0ea5e9; /* Sky Blue */
+            --bg-color: #f8fafc; /* Slate 50 */
+            --text-main: #0f172a; 
+            --text-muted: #64748b; 
+        }
         
-        /* Notifikasi Dropdown */
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+        
+        /* Modern Navbar */
+        .navbar { background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); padding: 1rem 0; }
+        .navbar-brand { font-weight: 800; color: var(--primary-color) !important; font-size: 1.5rem; letter-spacing: -0.5px;}
+        
+        /* Premium Buttons */
+        .btn { font-weight: 600; border-radius: 0.75rem; padding: 0.6rem 1.5rem; transition: all 0.2s ease; }
+        .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(67, 56, 202, 0.2); }
+        .btn-outline-primary { color: var(--primary-color); border-color: var(--primary-color); }
+        .btn-outline-primary:hover { background-color: var(--primary-color); color: white; }
+
+        /* Modern Cards */
+        .card { border: none; border-radius: 1.25rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; overflow: hidden; }
+        .card-hover:hover { transform: translateY(-7px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        
+        /* Elegant Form Inputs */
+        .form-control { border-radius: 0.75rem; padding: 0.8rem 1.2rem; border: 1px solid #e2e8f0; background-color: #f8fafc; transition: all 0.2s; }
+        .form-control:focus { background-color: #fff; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(67, 56, 202, 0.1); }
+        
+        /* Sleek Tabs */
+        .nav-tabs { border-bottom: 2px solid #e2e8f0; gap: 1rem; }
+        .nav-tabs .nav-link { border: none; color: var(--text-muted); font-weight: 600; padding: 1rem 0.5rem; background: transparent; position: relative; }
+        .nav-tabs .nav-link:hover { color: var(--primary-color); }
+        .nav-tabs .nav-link.active { color: var(--primary-color); background: transparent; }
+        .nav-tabs .nav-link.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 3px; background-color: var(--primary-color); border-radius: 3px 3px 0 0; }
+
+        /* Price Badge */
+        .price-badge { position: absolute; top: 1.25rem; right: 1.25rem; font-size: 0.85rem; font-weight: 700; padding: 0.4rem 1rem; border-radius: 2rem; z-index: 2; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        /* Progress Bar */
+        .progress { height: 8px; border-radius: 10px; background-color: #e2e8f0; }
+        .progress-bar { border-radius: 10px; }
+        .progress-bar.bg-success { background-color: #10b981 !important; }
+
+        /* Custom Quiz Options */
+        .quiz-option { cursor: pointer; border: 2px solid #e2e8f0; border-radius: 1rem; transition: all 0.2s ease; }
+        .quiz-option:hover { border-color: #cbd5e1; background-color: #f8fafc; }
+        .quiz-option.selected { border-color: var(--primary-color); background-color: rgba(67, 56, 202, 0.04); }
+        
+        /* Rich Text Cleanup */
+        .ql-editor { padding: 0 !important; font-family: inherit; font-size: 1.05rem; line-height: 1.7; color: #334155; }
+        .ql-editor img { max-width: 100%; border-radius: 12px; margin: 15px 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        
+        /* Certificate Button Glow */
+        .cert-btn { background: linear-gradient(135deg, #10b981, #059669); border: none; animation: pulse-glow 2s infinite; }
+        @keyframes pulse-glow { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+
+        /* Hero Banner Gradient */
+        .hero-banner { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); position: relative; overflow: hidden; }
+        .hero-glow { position: absolute; top: 0; right: 0; width: 400px; height: 400px; background: radial-gradient(circle, var(--primary-color) 0%, transparent 70%); opacity: 0.4; border-radius: 50%; transform: translate(30%, -30%); }
+        
+        /* Notifikasi Dropdown (BARU) */
         .notif-dropdown { width: 320px; max-height: 400px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 1rem; padding: 0; }
         .notif-item { padding: 1rem; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
         .notif-item:hover { background: #f8fafc; }
         .notif-item.unread { background: #eff6ff; }
     </style>
-    
+     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 </head>
 <body>
     <div id="app"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
-    
-    <script src="app.js"></script>
+    <script src="app.js"></script>   
 
     <script>
         let state = {
-            user: JSON.parse(localStorage.getItem('edupro_user')) || null,
-            currentView: localStorage.getItem('edupro_user') ? 'dashboard' : 'login',
+            user: JSON.parse(localStorage.getItem('edupro_student')) || null,
+            currentView: localStorage.getItem('edupro_student') ? 'dashboard' : 'catalog', 
             activeCourse: null,
+            activeTab: 'materi',
             courses: [],
-            notifications: []
+            notifications: [] // Menyimpan notifikasi
         };
 
-        const formatRupiah = (angka) => new Intl.NumberFormat('id-ID').format(angka);
         const showToast = (message, icon = 'success') => Swal.fire({ toast: true, position: 'top-end', icon, title: message, showConfirmButton: false, timer: 3000 });
+        const formatRupiah = (angka) => new Intl.NumberFormat('id-ID').format(angka);
 
         const renderApp = async () => {
             const app = document.getElementById('app');
-            let html = '';
-
-            if (state.user && state.currentView !== 'login') {
-                // Fetch Notifikasi Unread
+            let html = `
+                <nav class="navbar navbar-expand-lg sticky-top">
+                    <div class="container">
+                        <a class="navbar-brand d-flex align-items-center gap-2" href="#" onclick="navigate(${state.user ? "'dashboard'" : "'catalog'"})">
+                            <i class="fa-solid fa-graduation-cap"></i> EduPro
+                        </a>
+                        <div class="d-flex align-items-center gap-3">`;
+            
+            if (state.user) { 
+                // FETCH NOTIFIKASI
                 const { data: notifs } = await window.supabaseClient.from('notifications').select('*').eq('student_id', state.user.id).order('created_at', { ascending: false });
                 state.notifications = notifs || [];
                 const unreadCount = state.notifications.filter(n => !n.is_read).length;
 
                 html += `
-                <nav class="navbar navbar-expand-lg sticky-top py-3">
-                    <div class="container">
-                        <a class="navbar-brand fw-bold fs-4 d-flex align-items-center" href="#" onclick="navigate('dashboard')">
-                            <i class="fa-solid fa-graduation-cap text-primary me-2"></i>EduPro
-                        </a>
-                        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                            <span class="navbar-toggler-icon"></span>
-                        </button>
-                        <div class="collapse navbar-collapse" id="navbarNav">
-                            <ul class="navbar-nav ms-auto align-items-lg-center">
-                                <li class="nav-item"><a class="nav-link ${state.currentView === 'dashboard' ? 'active' : ''}" onclick="navigate('dashboard')">Beranda</a></li>
-                                <li class="nav-item"><a class="nav-link ${state.currentView === 'mycourses' ? 'active' : ''}" onclick="navigate('mycourses')">Kelas Saya</a></li>
-                                
-                                <li class="nav-item dropdown mx-2">
-                                    <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fa-solid fa-bell fs-5"></i>
-                                        ${unreadCount > 0 ? `<span class="position-absolute top-25 start-75 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem;">${unreadCount}</span>` : ''}
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end notif-dropdown shadow">
-                                        <li><h6 class="dropdown-header fw-bold bg-white text-dark py-3 border-bottom">Notifikasi</h6></li>
-                                        ${state.notifications.length === 0 ? '<li class="p-4 text-center text-muted small">Belum ada notifikasi</li>' : state.notifications.map(n => `
-                                            <li class="notif-item ${n.is_read ? '' : 'unread'}" onclick="markNotifRead('${n.id}')">
-                                                <div class="d-flex align-items-start">
-                                                    <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-circle me-3"><i class="fa-solid fa-info-circle"></i></div>
-                                                    <div>
-                                                        <h6 class="mb-1 fw-bold fs-6">${n.title}</h6>
-                                                        <p class="mb-0 text-muted small" style="font-size:0.8rem">${n.message}</p>
-                                                    </div>
+                            <div class="dropdown">
+                                <a href="#" class="text-dark position-relative me-2 d-flex align-items-center justify-content-center" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 40px; height: 40px; border-radius: 50%; background: #f1f5f9;">
+                                    <i class="fa-solid fa-bell fs-5"></i>
+                                    ${unreadCount > 0 ? `<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">${unreadCount}</span>` : ''}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end notif-dropdown mt-3 border-0">
+                                    <li><h6 class="dropdown-header fw-bold bg-white text-dark py-3 border-bottom">Notifikasi Anda</h6></li>
+                                    ${state.notifications.length === 0 ? '<li class="p-4 text-center text-muted small">Belum ada notifikasi</li>' : state.notifications.map(n => `
+                                        <li class="notif-item ${n.is_read ? '' : 'unread'}" onclick="markNotifRead('${n.id}')">
+                                            <div class="d-flex align-items-start">
+                                                <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-circle me-3 mt-1"><i class="fa-solid fa-bell"></i></div>
+                                                <div>
+                                                    <h6 class="mb-1 fw-bold fs-6 text-dark">${n.title}</h6>
+                                                    <p class="mb-0 text-muted small" style="font-size:0.8rem">${n.message}</p>
                                                 </div>
-                                            </li>
-                                        `).join('')}
-                                    </ul>
-                                </li>
+                                            </div>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
 
-                                <li class="nav-item ms-lg-3">
-                                    <button class="btn btn-light fw-bold rounded-pill px-4" onclick="navigate('profile')">
-                                        <i class="fa-solid fa-user-circle me-2"></i>${state.user.full_name.split(' ')[0]}
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </nav>
-                <main class="container py-4 py-md-5" id="main-content"></main>`;
-            } else {
-                html += `<main class="container d-flex align-items-center justify-content-center min-vh-100" id="main-content"></main>`;
+                            <div class="text-end d-none d-sm-block" style="cursor:pointer;" onclick="navigate('profile')">
+                                <div class="fw-bold text-dark lh-1">${state.user.full_name}</div>
+                                <small class="text-primary fw-bold" style="font-size: 0.8rem;"><i class="fa-solid fa-user me-1"></i>Lihat Profil</small>
+                            </div>
+                            <button onclick="handleLogout()" class="btn btn-outline-danger btn-sm rounded-pill px-3 ms-1" title="Keluar">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                            </button>`; 
+            } else { 
+                html += `
+                            <button onclick="navigate('login')" class="btn btn-outline-primary rounded-pill px-4">Masuk</button>
+                            <button onclick="navigate('register')" class="btn btn-primary rounded-pill px-4">Daftar</button>`; 
             }
+            html += `</div></div></nav><main class="container py-5 flex-grow-1" id="main-content"></main>`;
             app.innerHTML = html;
 
             const mainContent = document.getElementById('main-content');
-            if (state.currentView === 'login') renderLogin(mainContent);
+            if (state.currentView === 'catalog') renderPublicCatalog(mainContent);
+            else if (state.currentView === 'login') renderLogin(mainContent);
+            else if (state.currentView === 'register') renderRegister(mainContent);
             else if (state.currentView === 'dashboard') renderDashboard(mainContent);
-            else if (state.currentView === 'mycourses') renderMyCourses(mainContent);
-            else if (state.currentView === 'profile') renderProfile(mainContent);
-            else if (state.currentView === 'learn') renderLearnCourse(mainContent);
+            else if (state.currentView === 'courseDetail') renderCourseDetail(mainContent);
+            else if (state.currentView === 'profile') renderProfile(mainContent); // VIEW PROFIL
         };
 
-        const navigate = (view, data = null) => { state.currentView = view; if(data) state.activeCourse = data; renderApp(); window.scrollTo(0,0); };
+        const navigate = (view, courseData = null) => {
+            state.currentView = view;
+            if (courseData) { state.activeCourse = courseData; state.activeTab = 'materi'; }
+            renderApp(); window.scrollTo(0,0);
+        };
 
         window.markNotifRead = async (id) => {
             await window.supabaseClient.from('notifications').update({ is_read: true }).eq('id', id);
-            renderApp();
+            renderApp(); // Refresh UI
         };
 
-        const handleLogout = () => { localStorage.removeItem('edupro_user'); state.user = null; navigate('login'); };
+        const renderPublicCatalog = async (container) => {
+            container.innerHTML = `
+                <div class="text-center mb-5 mt-3">
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3 fw-bold">Belajar Bersama Ahlinya</span>
+                    <h1 class="fw-bold text-dark mb-3" style="font-size: 2.5rem; letter-spacing: -1px;">Tingkatkan Keahlian Anda Hari Ini</h1>
+                    <p class="text-muted mx-auto" style="max-width: 600px; font-size: 1.1rem;">Pilih dari berbagai katalog kelas interaktif kami. Daftar sekarang untuk mulai belajar dan dapatkan sertifikat kelulusan.</p>
+                </div>
+                <div id="publicCourseList" class="row g-4"></div>`;
+                
+            const { data: courses } = await window.supabaseClient.from('courses').select('*').order('created_at', { ascending: false });
+            let html = (courses||[]).map(c => `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card card-hover h-100 border-0" onclick="handleGuestClick()" style="cursor: pointer;">
+                        <span class="price-badge ${c.price==0?'bg-success text-white':'bg-white text-dark shadow-sm'}">${c.price==0?'Gratis':'Rp '+formatRupiah(c.price)}</span>
+                        <div class="position-relative" style="height: 160px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+                            <div class="position-absolute top-50 start-50 translate-middle text-white"><i class="fa-solid fa-laptop-code fa-4x opacity-50"></i></div>
+                        </div>
+                        <div class="card-body d-flex flex-column p-4">
+                            <h5 class="fw-bold mb-2 text-dark lh-base">${c.title}</h5>
+                            <p class="text-muted small mb-4 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${c.description}</p>
+                            <button class="btn btn-outline-primary w-100 rounded-pill">Lihat Detail Kelas</button>
+                        </div>
+                    </div>
+                </div>`).join('');
+            document.getElementById('publicCourseList').innerHTML = html || `<div class="col-12 text-center text-muted p-5 bg-white rounded-4 shadow-sm">Katalog kelas sedang kosong.</div>`;
+        };
+        
+        window.handleGuestClick = () => { Swal.fire({ title: 'Akses Dibatasi', text: 'Silakan Login atau Daftar akun untuk mulai belajar.', icon: 'info', showCancelButton: true, confirmButtonText: 'Login Sekarang', cancelButtonText: 'Daftar Baru', confirmButtonColor: '#4338ca' }).then((r) => { if(r.isConfirmed) navigate('login'); else if(r.dismiss===Swal.DismissReason.cancel) navigate('register'); }); };
 
         const renderLogin = (container) => {
             container.innerHTML = `
-                <div class="card p-5 border-0 shadow-lg w-100" style="max-width: 450px;">
-                    <div class="text-center mb-5">
-                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;"><i class="fa-solid fa-graduation-cap fa-2x"></i></div>
-                        <h2 class="fw-bold text-dark mb-1">EduPro LMS</h2>
-                        <p class="text-muted">Masuk ke portal belajar Anda</p>
-                    </div>
-                    <form id="loginForm">
-                        <div class="mb-4 text-start"><label class="form-label fw-bold small text-muted">NISN / Username</label><input type="text" id="nisn" class="form-control form-control-lg bg-light" required></div>
-                        <div class="mb-5 text-start"><label class="form-label fw-bold small text-muted">Kata Sandi</label><input type="password" id="password" class="form-control form-control-lg bg-light" required></div>
-                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm" id="btnLogin">Mulai Belajar <i class="fa-solid fa-arrow-right ms-2"></i></button>
-                    </form>
-                </div>`;
-            document.getElementById('loginForm').addEventListener('submit', async (e) => {
-                e.preventDefault(); const btn = document.getElementById('btnLogin'); btn.disabled = true; btn.innerHTML = 'Memeriksa...';
-                const { data: user } = await window.supabaseClient.from('users').select('*').eq('nisn', document.getElementById('nisn').value).maybeSingle();
-                if (!user || user.password !== document.getElementById('password').value) { Swal.fire('Gagal', 'NISN atau Password salah.', 'error'); btn.disabled = false; btn.innerHTML = 'Mulai Belajar'; return; }
-                state.user = user; localStorage.setItem('edupro_user', JSON.stringify(user)); navigate('dashboard');
-            });
-        };
-
-        const renderDashboard = async (container) => {
-            container.innerHTML = `<div class="mb-5 text-center text-md-start"><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-2">Selamat Datang 👋</span><h2 class="fw-bold text-dark display-6">Hai, ${state.user.full_name}!</h2><p class="text-muted fs-5">Mau belajar apa hari ini?</p></div><h4 class="fw-bold mb-4">Eksplorasi Kelas</h4><div class="row g-4" id="catalogList"><div class="col-12 text-center p-5"><span class="spinner-border text-primary"></span></div></div>`;
-            
-            const { data: courses } = await window.supabaseClient.from('courses').select('*');
-            const { data: myTrx } = await window.supabaseClient.from('transactions').select('*').eq('student_id', state.user.id);
-            
-            let html = courses?.map(c => {
-                const trx = myTrx?.find(t => t.course_id === c.id);
-                let btn = `<button onclick="enrollCourse('${c.id}', ${c.price})" class="btn btn-primary w-100 rounded-pill py-2">Daftar Sekarang</button>`;
-                if (trx) {
-                    if (trx.status === 'PAID' || trx.status === 'approved') btn = `<button onclick="navigate('learn', {id: '${c.id}', title: '${c.title}'})" class="btn btn-success w-100 rounded-pill py-2"><i class="fa-solid fa-play me-2"></i>Lanjutkan Belajar</button>`;
-                    else btn = `<button class="btn btn-warning text-dark w-100 rounded-pill py-2" disabled><i class="fa-solid fa-clock me-2"></i>Menunggu Verifikasi</button>`;
-                }
-                return `
-                <div class="col-md-6 col-lg-4">
-                    <div class="card card-hover h-100 border-0 p-2">
-                        <div class="card-body p-4 d-flex flex-column">
-                            <div class="d-flex justify-content-between mb-3"><div class="bg-primary bg-opacity-10 text-primary p-3 rounded-4"><i class="fa-solid fa-book-open fs-3"></i></div><span class="badge ${c.price > 0 ? 'bg-warning text-dark' : 'bg-success'} px-3 py-2 rounded-pill shadow-sm">${c.price > 0 ? 'Rp '+formatRupiah(c.price) : 'Gratis'}</span></div>
-                            <h5 class="fw-bold text-dark mb-2">${c.title}</h5>
-                            <p class="text-muted small mb-4 flex-grow-1 line-clamp-2">${c.description}</p>
-                            ${btn}
+                <div class="row justify-content-center mt-3">
+                    <div class="col-md-6 col-lg-5">
+                        <div class="card p-5 border-0 shadow">
+                            <div class="text-center mb-4">
+                                <h2 class="fw-bold text-dark mb-1">Selamat Datang 👋</h2>
+                                <p class="text-muted">Masuk ke ruang belajar Anda</p>
+                            </div>
+                            <form id="loginForm">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small text-muted">NISN / Username</label>
+                                    <input type="text" id="nisn" class="form-control" placeholder="Masukkan NISN" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold small text-muted">Password</label>
+                                    <input type="password" id="password" class="form-control" placeholder="Masukkan Password" required>
+                                </div>
+                                <button class="btn btn-primary w-100 mb-4 py-2" id="btnLogin">Masuk ke Dashboard</button>
+                                <p class="text-center text-muted small mb-0">Belum punya akun? <a href="#" onclick="navigate('register')" class="text-primary fw-bold text-decoration-none">Daftar sekarang</a></p>
+                            </form>
                         </div>
                     </div>
                 </div>`;
-            }).join('') || '<div class="col-12"><p class="text-muted">Belum ada kelas yang tersedia.</p></div>';
-            document.getElementById('catalogList').innerHTML = html;
+            document.getElementById('loginForm').addEventListener('submit', async (e) => { 
+                e.preventDefault(); 
+                const btn = document.getElementById('btnLogin'); btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memeriksa...'; btn.disabled = true;
+                const { data: user } = await window.supabaseClient.from('users').select('*').eq('nisn', document.getElementById('nisn').value).maybeSingle(); 
+                if(user && user.password === document.getElementById('password').value && user.role === 'student'){ 
+                    state.user = user; localStorage.setItem('edupro_student', JSON.stringify(user)); navigate('dashboard'); 
+                } else { 
+                    Swal.fire('Login Gagal', 'NISN tidak terdaftar atau password salah.', 'error'); 
+                    btn.innerHTML = 'Masuk ke Dashboard'; btn.disabled = false;
+                } 
+            });
         };
 
+        const renderRegister = (container) => {
+            container.innerHTML = `
+                <div class="row justify-content-center mt-3">
+                    <div class="col-md-6 col-lg-5">
+                        <div class="card p-5 border-0 shadow">
+                            <div class="text-center mb-4">
+                                <h2 class="fw-bold text-dark mb-1">Buat Akun Baru</h2>
+                                <p class="text-muted">Mulai perjalanan karir Anda</p>
+                            </div>
+                            <form id="registerForm">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small text-muted">Nama Lengkap</label>
+                                    <input type="text" id="regName" class="form-control" placeholder="Cth: Budi Santoso" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small text-muted">NISN / Username</label>
+                                    <input type="text" id="regNisn" class="form-control" placeholder="Cth: 12345678" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold small text-muted">Buat Password</label>
+                                    <input type="password" id="regPassword" class="form-control" placeholder="Minimal 6 karakter" required minlength="6">
+                                </div>
+                                <button class="btn btn-primary w-100 mb-4 py-2">Daftar Akun</button>
+                                <p class="text-center text-muted small mb-0">Sudah punya akun? <a href="#" onclick="navigate('login')" class="text-primary fw-bold text-decoration-none">Login di sini</a></p>
+                            </form>
+                        </div>
+                    </div>
+                </div>`;
+            document.getElementById('registerForm').addEventListener('submit', async (e) => { 
+                e.preventDefault(); 
+                await window.supabaseClient.from('users').insert([{ full_name: document.getElementById('regName').value, nisn: document.getElementById('regNisn').value, password: document.getElementById('regPassword').value, role: 'student' }]); 
+                Swal.fire('Berhasil Terdaftar!', 'Akun Anda sudah siap, silakan Login.', 'success').then(()=>navigate('login')); 
+            });
+        };
+
+        const handleLogout = () => { localStorage.removeItem('edupro_student'); state.user = null; navigate('catalog'); };
+
+        // HALAMAN PROFIL (BARU)
         const renderProfile = (container) => {
             container.innerHTML = `
+                <button onclick="navigate('dashboard')" class="btn btn-link text-muted p-0 mb-4 text-decoration-none fw-semibold">
+                    <i class="fa-solid fa-arrow-left me-2"></i> Kembali ke Dashboard
+                </button>
                 <div class="row justify-content-center">
                     <div class="col-md-8 col-lg-6">
                         <div class="card p-4 p-md-5 border-0 shadow-sm">
@@ -191,9 +298,9 @@
                                     ${state.user.full_name.charAt(0).toUpperCase()}
                                 </div>
                                 <h3 class="fw-bold text-dark mb-1">${state.user.full_name}</h3>
-                                <p class="text-muted mb-0">NISN: ${state.user.nisn}</p>
+                                <p class="text-muted mb-0">NISN / Username: ${state.user.nisn}</p>
                             </div>
-                            <hr class="my-4 text-muted">
+                            <hr class="my-4 text-muted border-secondary opacity-25">
                             <h5 class="fw-bold text-dark mb-4"><i class="fa-solid fa-lock text-primary me-2"></i>Ganti Kata Sandi</h5>
                             <form id="formChangePassword">
                                 <div class="mb-3">
@@ -204,11 +311,8 @@
                                     <label class="form-label text-muted small fw-bold">Konfirmasi Kata Sandi Baru</label>
                                     <input type="password" id="confirmPass" class="form-control bg-light" required minlength="4">
                                 </div>
-                                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2" id="btnSavePass">Simpan Kata Sandi</button>
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm" id="btnSavePass">Simpan Kata Sandi</button>
                             </form>
-                            <div class="mt-5 text-center">
-                                <button onclick="handleLogout()" class="btn btn-outline-danger rounded-pill px-5"><i class="fa-solid fa-right-from-bracket me-2"></i>Keluar Aplikasi</button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -231,177 +335,405 @@
             });
         };
 
+        const renderDashboard = async (container) => {
+            container.innerHTML = `
+                <div class="hero-banner p-5 mb-5 rounded-4 text-white shadow-lg">
+                    <div class="hero-glow"></div>
+                    <div class="position-relative z-index-1">
+                        <span class="badge bg-white text-primary px-3 py-2 rounded-pill mb-3 fw-bold">Ruang Belajar</span>
+                        <h2 class="fw-bold display-6 mb-2">Halo, ${state.user.full_name}! 👋</h2>
+                        <p class="mb-0 fs-5 text-white-50">Mari lanjutkan proses belajarmu hari ini.</p>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold text-dark mb-0">Katalog Kelas</h4>
+                </div>
+                <div id="courseList" class="row g-4"></div>`;
+                
+            const { data: courses } = await window.supabaseClient.from('courses').select('*').order('created_at', { ascending: false });
+            const { data: trxData } = await window.supabaseClient.from('transactions').select('*').eq('student_id', state.user.id);
+            
+            let html = (courses||[]).map(c => {
+                const isOwned = (trxData||[]).some(t => t.course_id === c.id && (t.status === 'PAID' || t.status === 'approved'));
+                const hasAccess = c.price == 0 || isOwned;
+                return `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card card-hover h-100 border-0" onclick="openStudentCourseGlobal('${c.id}', ${hasAccess})" style="cursor: pointer;">
+                            <span class="price-badge ${hasAccess?'bg-primary text-white':(c.price==0?'bg-success text-white':'bg-white text-dark shadow-sm')}">${hasAccess?(c.price==0?'Gratis':'Akses Dibuka'):'Rp '+formatRupiah(c.price)}</span>
+                            <div class="position-relative" style="height: 140px; background: linear-gradient(135deg, ${hasAccess ? 'var(--primary-color), var(--secondary-color)' : '#94a3b8, #cbd5e1'});">
+                                <div class="position-absolute top-50 start-50 translate-middle text-white"><i class="fa-solid ${hasAccess ? 'fa-book-open-reader' : 'fa-lock'} fa-3x opacity-50"></i></div>
+                            </div>
+                            <div class="card-body d-flex flex-column p-4">
+                                <h5 class="fw-bold mb-2 text-dark lh-base">${c.title}</h5>
+                                <p class="text-muted small mb-4 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${c.description}</p>
+                                ${hasAccess ? 
+                                    `<div class="mt-auto d-flex align-items-center text-primary fw-bold"><i class="fa-solid fa-play-circle me-2 fs-5"></i> Mulai Belajar</div>` : 
+                                    `<button class="btn btn-outline-dark w-100 mt-auto rounded-pill fw-bold border-2">Beli Kelas Premium</button>`
+                                }
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+            
+            document.getElementById('courseList').innerHTML = html || `<div class="col-12 text-center text-muted p-5 bg-white rounded-4 shadow-sm">Belum ada kelas yang tersedia.</div>`;
+            state.courses = courses;
+        };
+
+        window.openStudentCourseGlobal = (id, hasAccess) => { const course = state.courses.find(c => c.id === id); if (course) hasAccess ? navigate('courseDetail', course) : window.enrollCourse(course.id, course.price); };
+        
+        // MODIFIKASI FUNGSI PEMBAYARAN MENGGUNAKAN POP-UP QRIS
         window.enrollCourse = async (courseId, price) => { 
             Swal.fire({ 
                 title: 'Daftar Kelas Ini?', 
-                html: price == 0 ? "Kelas ini 100% Gratis!" : `Investasi: <b>Rp ${formatRupiah(price)}</b><br><br><small class="text-muted">Anda akan diminta melakukan transfer melalui QRIS/Manual.</small>`,
+                html: price == 0 ? "Kelas ini 100% Gratis!" : `Investasi: <b>Rp ${formatRupiah(price)}</b><br><br><small class="text-muted">Untuk kelas berbayar, Anda akan diminta melakukan transfer secara manual.</small>`,
                 icon: 'question', 
-                showCancelButton: true, confirmButtonColor: '#4338ca', confirmButtonText: price == 0 ? 'Ya, Daftar' : 'Lanjut Pembayaran'
+                showCancelButton: true, 
+                confirmButtonColor: '#4338ca',
+                confirmButtonText: price == 0 ? 'Ya, Daftar' : 'Lanjut Pembayaran',
+                cancelButtonText: 'Batal'
             }).then(async (res) => { 
                 if(res.isConfirmed) { 
                     Swal.showLoading();
                     const status = price == 0 ? 'approved' : 'pending';
-                    await window.supabaseClient.from('transactions').insert([{ student_id: state.user.id, course_id: courseId, amount: price, status }]);
+                    await window.supabaseClient.from('transactions').insert([{ id: 'TRX-'+Date.now(), student_id: state.user.id, course_id: courseId, amount: price, status }]); 
                     
-                    if(price == 0){
-                        Swal.fire('Berhasil', 'Terdaftar di kelas gratis!', 'success').then(()=> navigate('dashboard'));
+                    if (price == 0) {
+                        Swal.fire('Berhasil', 'Anda telah terdaftar di kelas gratis ini!', 'success').then(() => navigate('dashboard')); 
                     } else {
+                        // Jika Berbayar, Munculkan Instruksi QRIS
                         Swal.fire({
                             title: 'Instruksi Pembayaran',
                             html: `
                                 <div class="text-center">
-                                    <p class="mb-3">Silakan transfer senilai <b>Rp ${formatRupiah(price)}</b> ke E-Wallet berikut:</p>
+                                    <p class="mb-3">Silakan transfer senilai <b>Rp ${formatRupiah(price)}</b> ke rekening/E-Wallet berikut:</p>
                                     <div class="bg-light p-3 rounded-3 mb-3 border">
                                         <h5 class="fw-bold mb-1">GOPAY / OVO / DANA</h5>
                                         <p class="mb-0 fs-5 text-primary fw-bold">0812-3456-7890</p>
                                         <small class="text-muted">a.n. EduPro Admin</small>
                                     </div>
-                                    <p class="small text-danger">Kirimkan bukti screenshot ke WhatsApp Guru agar kelas dibuka.</p>
+                                    <p class="small text-danger">Setelah transfer, kirimkan bukti foto/screenshot ke WhatsApp Guru agar akses kelas Anda segera dibuka.</p>
                                 </div>
                             `,
-                            icon: 'info', confirmButtonText: 'Saya Mengerti', confirmButtonColor: '#4338ca'
-                        }).then(()=> navigate('dashboard'));
+                            icon: 'info',
+                            confirmButtonText: 'Saya Mengerti',
+                            confirmButtonColor: '#4338ca'
+                        }).then(() => navigate('dashboard'));
                     }
                 } 
             }); 
         };
 
-        const renderMyCourses = async (container) => {
-            container.innerHTML = `<h3 class="fw-bold mb-4">Kelas Saya</h3><div class="row g-4" id="myCourseList"><div class="col-12 text-center p-5"><span class="spinner-border"></span></div></div>`;
-            const { data: myTrx } = await window.supabaseClient.from('transactions').select('course_id, status').eq('student_id', state.user.id);
-            const { data: courses } = await window.supabaseClient.from('courses').select('*');
-            
-            let html = myTrx?.map(trx => {
-                const c = courses?.find(c => c.id === trx.course_id); if(!c) return '';
-                return `
-                <div class="col-md-6 col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm p-2">
-                        <div class="card-body p-4 d-flex flex-column">
-                            <h5 class="fw-bold text-dark mb-3">${c.title}</h5>
-                            ${trx.status === 'PAID' || trx.status === 'approved' 
-                                ? `<button onclick="navigate('learn', {id: '${c.id}', title: '${c.title}'})" class="btn btn-success w-100 rounded-pill py-2 mt-auto"><i class="fa-solid fa-play me-2"></i>Lanjutkan</button>`
-                                : `<button class="btn btn-light text-warning w-100 rounded-pill py-2 mt-auto" disabled><i class="fa-solid fa-clock me-2"></i>Menunggu Approval</button>`}
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-            document.getElementById('myCourseList').innerHTML = html || '<div class="col-12"><p class="text-muted">Anda belum memiliki kelas.</p></div>';
-        };
+        const renderCourseDetail = async (container) => {
+            if(window.quizTimer) clearInterval(window.quizTimer);
 
-        const renderLearnCourse = async (container) => {
             container.innerHTML = `
-            <div class="row g-4">
-                <div class="col-lg-4">
-                    <div class="card border-0 shadow-sm p-3 mb-4 sticky-top" style="top: 100px;">
-                        <h5 class="fw-bold mb-3">${state.activeCourse.title}</h5>
-                        <div class="list-group list-group-flush" id="curriculumList">
-                            <div class="text-center p-3"><span class="spinner-border spinner-border-sm text-primary"></span></div>
+                <button onclick="navigate('dashboard')" class="btn btn-link text-muted p-0 mb-4 text-decoration-none fw-semibold">
+                    <i class="fa-solid fa-arrow-left me-2"></i> Kembali ke Dashboard
+                </button>
+                
+                <div class="hero-banner p-4 p-md-5 mb-5 rounded-4 text-white shadow-lg">
+                    <div class="hero-glow"></div>
+                    <div class="position-relative z-index-1 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+                        <div>
+                            <h2 class="fw-bold display-6 mb-2">${state.activeCourse.title}</h2>
+                            <p class="mb-0 fs-6 text-white-50" style="max-width: 600px;">${state.activeCourse.description}</p>
                         </div>
-                        <button onclick="generateCertificate()" class="btn btn-outline-primary w-100 mt-3 rounded-pill"><i class="fa-solid fa-award me-2"></i>Unduh Sertifikat</button>
+                        <div id="certificateContainer" class="flex-shrink-0"></div>
                     </div>
                 </div>
-                <div class="col-lg-8"><div class="card border-0 shadow-sm p-4 p-md-5" id="learnContent">Pilih materi di samping untuk mulai belajar.</div></div>
-            </div>`;
-            
-            const { data: materials } = await window.supabaseClient.from('materials').select('*').eq('course_id', state.activeCourse.id).order('order_number');
-            const { data: quizzes } = await window.supabaseClient.from('quizzes').select('*').eq('course_id', state.activeCourse.id);
-            
-            let html = materials?.map(m => `<button onclick="loadMaterial('${m.id}')" class="list-group-item list-group-item-action border-0 rounded mb-1"><i class="fa-solid ${m.content_url ? 'fa-video' : 'fa-file-alt'} text-primary me-2"></i>${m.title}</button>`).join('') || '';
-            html += quizzes?.map(q => `<button onclick="loadQuiz('${q.id}')" class="list-group-item list-group-item-action border-0 rounded mb-1 bg-light text-dark fw-bold"><i class="fa-solid fa-tasks text-success me-2"></i>Kuis: ${q.title}</button>`).join('') || '';
-            document.getElementById('curriculumList').innerHTML = html || '<p class="text-muted small">Belum ada materi.</p>';
-            
-            if(materials && materials.length > 0) loadMaterial(materials[0].id);
+                
+                <ul class="nav nav-tabs mb-4 px-2">
+                    <li class="nav-item">
+                        <button class="nav-link ${state.activeTab === 'materi' ? 'active fw-bold' : ''}" onclick="switchTab('materi')">
+                            <i class="fa-solid fa-book-open me-2"></i>Materi Belajar
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link ${state.activeTab === 'kuis' ? 'active fw-bold' : ''}" onclick="switchTab('kuis')">
+                            <i class="fa-solid fa-file-pen me-2"></i>Ujian Akhir
+                        </button>
+                    </li>
+                </ul>
+                <div id="tabContent"></div>`;
+            loadTabContent();
         };
 
-        window.loadMaterial = async (id) => {
-            document.getElementById('learnContent').innerHTML = '<div class="text-center p-5"><span class="spinner-border text-primary"></span></div>';
-            const { data: m } = await window.supabaseClient.from('materials').select('*').eq('id', id).single();
-            if(!m) return;
-            let contentHtml = m.content_url ? `<div class="ratio ratio-16x9 mb-4 rounded overflow-hidden shadow-sm"><iframe src="${m.content_url}" allowfullscreen></iframe></div>` : '';
-            document.getElementById('learnContent').innerHTML = `
-                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3">Materi Belajar</span>
-                <h3 class="fw-bold mb-4">${m.title}</h3>
-                ${contentHtml}
-                <div class="lh-lg text-muted fs-6">${m.description.replace(/\\n/g, '<br>')}</div>
-            `;
+        window.switchTab = (tabName) => { 
+            state.activeTab = tabName; 
+            if(window.quizTimer) clearInterval(window.quizTimer); 
+            renderCourseDetail(document.getElementById('main-content')); 
         };
 
-        window.loadQuiz = async (id) => {
-            document.getElementById('learnContent').innerHTML = '<div class="text-center p-5"><span class="spinner-border text-primary"></span></div>';
-            const { data: q } = await window.supabaseClient.from('quizzes').select('*').eq('id', id).single();
-            const { data: sub } = await window.supabaseClient.from('submissions').select('*').eq('quiz_id', id).eq('student_id', state.user.id).maybeSingle();
+        const loadTabContent = async () => {
+            const content = document.getElementById('tabContent');
+            const { data: materialsData } = await window.supabaseClient.from('materials').select('*').eq('course_id', state.activeCourse.id).order('order_number', { ascending: true });
+            const { data: progressData } = await window.supabaseClient.from('progress').select('material_id').eq('student_id', state.user.id);
+            const { data: quizzesData } = await window.supabaseClient.from('quizzes').select('*').eq('course_id', state.activeCourse.id);
+            const { data: scoreData } = await window.supabaseClient.from('quiz_scores').select('score, passed').eq('student_id', state.user.id).eq('course_id', state.activeCourse.id).maybeSingle();
+            const { data: subData } = await window.supabaseClient.from('submissions').select('*').eq('course_id', state.activeCourse.id).eq('student_id', state.user.id);
+
+            const materials = materialsData || []; const progressMap = (progressData||[]).map(p => p.material_id);
+            const totalMateri = materials.length; const materiSelesai = progressMap.length;
+            const persentase = totalMateri === 0 ? 0 : Math.round((materiSelesai / totalMateri) * 100);
             
-            if (sub) {
-                document.getElementById('learnContent').innerHTML = `
-                    <div class="text-center p-5">
-                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width:80px; height:80px;"><i class="fa-solid fa-check-double fa-2x"></i></div>
-                        <h3 class="fw-bold">Anda sudah mengerjakan kuis ini</h3>
-                        <p class="text-muted fs-5">Nilai Anda: <strong class="text-dark">${sub.score !== null ? sub.score : 'Belum dinilai'}</strong> / 100</p>
+            let finalScore = scoreData ? scoreData.score : 0;
+            let predikat = "LULUS"; if (finalScore >= 93) predikat = "SANGAT BAIK"; else if (finalScore >= 80) predikat = "BAIK";
+            window.courseFinalScore = finalScore; window.coursePredikat = predikat;
+
+            if (persentase === 100 && totalMateri > 0 && (!quizzesData || quizzesData.length === 0 || scoreData?.passed)) {
+                document.getElementById('certificateContainer').innerHTML = `
+                    <button onclick="downloadCertificate()" class="btn btn-success cert-btn px-4 py-3 rounded-pill text-white fw-bold d-flex align-items-center shadow-lg">
+                        <i class="fa-solid fa-award fs-4 me-2"></i> Unduh Sertifikat
+                    </button>`;
+            } else { document.getElementById('certificateContainer').innerHTML = ''; }
+
+            if (state.activeTab === 'materi') {
+                let html = totalMateri > 0 ? `
+                    <div class="mb-5 bg-white p-4 rounded-4 shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-dark">Progress Belajar Anda</span>
+                            <span class="fw-bold text-primary">${persentase}% Selesai</span>
+                        </div>
+                        <div class="progress mb-1">
+                            <div class="progress-bar ${persentase === 100 ? 'bg-success' : 'bg-primary'}" style="width: ${persentase}%"></div>
+                        </div>
+                    </div>` : '';
+                
+                html += `<div class="d-flex flex-column gap-4">`;
+                materials.forEach((mat, idx) => {
+                    const isDone = progressMap.includes(mat.id);
+                    html += `
+                        <div class="card ${isDone ? 'border-start border-success border-5' : 'border-start border-primary border-5'} shadow-sm">
+                            <div class="card-body p-4 p-md-5">
+                                <div class="d-flex align-items-center mb-4 gap-3">
+                                    <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 45px; height: 45px; font-size: 1.2rem;">${mat.order_number || idx + 1}</div>
+                                    <h4 class="fw-bold mb-0 text-dark">${mat.title}</h4>
+                                </div>
+                                
+                                <div class="ql-editor p-0 mb-4">${mat.description}</div> 
+                                
+                                ${mat.content_url ? `
+                                    <div class="mt-4 p-4 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-4">
+                                        <div class="d-flex align-items-center gap-2 mb-3">
+                                            <i class="fa-solid fa-file-pen text-primary fs-5"></i>
+                                            <h6 class="fw-bold text-dark mb-0">Tugas Praktik</h6>
+                                        </div>
+                                        <p class="text-muted">${mat.content_url}</p>
+                                        <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center">
+                                            <input type="file" id="task_file_${mat.id}" class="form-control bg-white">
+                                            <button onclick="submitTask('${mat.id}')" class="btn btn-primary fw-bold px-4 flex-shrink-0"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Upload Tugas</button>
+                                        </div>
+                                    </div>` : ''}
+                                    
+                                <div class="mt-5 d-flex justify-content-end border-top pt-4">
+                                    ${isDone ? `
+                                        <span class="btn btn-light text-success fw-bold px-4 rounded-pill border border-success border-opacity-25 bg-success bg-opacity-10" style="cursor:default;">
+                                            <i class="fa-solid fa-circle-check me-2"></i> Materi Selesai
+                                        </span>` : `
+                                        <button onclick="markDone('${mat.id}')" class="btn btn-success fw-bold px-5 rounded-pill shadow-sm">
+                                            Tandai Selesai <i class="fa-solid fa-check ms-2"></i>
+                                        </button>`}
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                content.innerHTML = html + `</div>`;
+            } 
+            else if (state.activeTab === 'kuis') {
+                if (persentase < 100) return content.innerHTML = `
+                    <div class="card border-0 shadow-sm p-5 text-center mt-3">
+                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+                            <i class="fa-solid fa-lock fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark">Ujian Masih Terkunci</h4>
+                        <p class="text-muted">Harap selesaikan seluruh materi (100%) terlebih dahulu untuk membuka akses ujian akhir.</p>
                     </div>`;
-                return;
+                    
+                if (!quizzesData || quizzesData.length === 0) return content.innerHTML = `<div class="card border-0 shadow-sm p-5 text-center text-muted mt-3">Belum ada soal ujian untuk kelas ini.</div>`;
+                
+                if (scoreData) {
+                    content.innerHTML = `
+                        <div class="card border-0 shadow-sm p-5 text-center mt-3 overflow-hidden position-relative">
+                            <div class="position-absolute top-0 start-0 w-100" style="height: 10px; background-color: ${scoreData.passed ? '#10b981' : '#ef4444'};"></div>
+                            <div class="${scoreData.passed ? 'text-success bg-success' : 'text-danger bg-danger'} bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4 mt-3" style="width: 90px; height: 90px;">
+                                <i class="fa-solid ${scoreData.passed ? 'fa-trophy' : 'fa-circle-xmark'} fa-3x"></i>
+                            </div>
+                            <h5 class="fw-bold text-muted mb-1">Skor Ujian Akhir Anda</h5>
+                            <h1 class="fw-bold display-4 mb-3 ${scoreData.passed ? 'text-success' : 'text-danger'}">${scoreData.score}</h1>
+                            <p class="fs-5 fw-semibold text-dark">${scoreData.passed ? 'Luar Biasa, Anda Lulus!' : 'Maaf, nilai Anda di bawah KKM (80).'}</p>
+                        </div>`;
+                    return;
+                }
+
+                window.quizQuestions = [...quizzesData].sort(() => Math.random() - 0.5); 
+                window.currentQIndex = 0;
+                window.studentAnswers = {}; 
+                window.timeLeft = (state.activeCourse.quiz_duration || 15) * 60; 
+
+                content.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+                        <h4 class="fw-bold text-dark mb-0">Ujian Akhir Kelas</h4>
+                        <div class="badge bg-white border border-danger text-danger fs-6 px-4 py-2 rounded-pill shadow-sm d-flex align-items-center gap-2">
+                            <i class="fa-regular fa-clock fa-lg"></i> <span id="timerDisplay" class="fw-bold" style="font-family: monospace; font-size:1.1rem;">--:--</span>
+                        </div>
+                    </div>
+                    <div id="quizContainer"></div>
+                `;
+
+                window.renderQuizQ = () => {
+                    const q = window.quizQuestions[window.currentQIndex];
+                    const ans = window.studentAnswers[q.id] || ''; 
+                    let qHtml = `
+                        <div class="card shadow border-0 mb-5 rounded-4 overflow-hidden">
+                            <div class="bg-light py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-muted small text-uppercase tracking-wide">Pertanyaan ${window.currentQIndex + 1} / ${window.quizQuestions.length}</span>
+                            </div>
+                            <div class="card-body p-4 p-md-5">
+                                <h4 class="mb-5 text-dark lh-base fw-bold">${q.question}</h4>
+                                <div class="d-flex flex-column gap-3">
+                                    ${['a','b','c','d'].map(opt => `
+                                        <div class="quiz-option p-4 ${ans===opt ? 'selected' : ''}" onclick="document.getElementById('opt_${q.id}_${opt}').click()">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-4 position-relative">
+                                                    <input class="form-check-input" type="radio" name="q_${q.id}" id="opt_${q.id}_${opt}" value="${opt}" ${ans===opt?'checked':''} onchange="window.saveAns('${q.id}', '${opt}')" style="transform: scale(1.5);">
+                                                </div>
+                                                <span class="fs-5 text-dark"><strong class="me-2">${opt.toUpperCase()}.</strong> ${q[opt]}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="bg-light p-4 d-flex justify-content-between align-items-center border-top">
+                                <button class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-bold" onclick="window.prevQ()" ${window.currentQIndex === 0 ? 'disabled' : ''}>
+                                    <i class="fa-solid fa-arrow-left me-2"></i> Kembali
+                                </button>
+                                ${window.currentQIndex === window.quizQuestions.length - 1 ?
+                                    `<button class="btn btn-success px-5 py-2 rounded-pill fw-bold shadow" onclick="window.confirmSubmitQuiz()">
+                                        Kumpulkan <i class="fa-solid fa-paper-plane ms-2"></i>
+                                    </button>` :
+                                    `<button class="btn btn-primary px-5 py-2 rounded-pill fw-bold shadow-sm" onclick="window.nextQ()">
+                                        Selanjutnya <i class="fa-solid fa-arrow-right ms-2"></i>
+                                    </button>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('quizContainer').innerHTML = qHtml;
+                };
+
+                window.saveAns = (qId, option) => { window.studentAnswers[qId] = option; window.renderQuizQ(); };
+                window.nextQ = () => { if(window.currentQIndex < window.quizQuestions.length - 1) { window.currentQIndex++; window.renderQuizQ(); } };
+                window.prevQ = () => { if(window.currentQIndex > 0) { window.currentQIndex--; window.renderQuizQ(); } };
+
+                window.confirmSubmitQuiz = () => {
+                    const answered = Object.keys(window.studentAnswers).length;
+                    if(answered < window.quizQuestions.length) {
+                        Swal.fire({ title: 'Kumpulkan Ujian?', html: `Masih ada <b class="text-danger">${window.quizQuestions.length - answered} soal</b> yang belum dijawab!`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Kumpulkan', cancelButtonText: 'Cek Kembali', confirmButtonColor: '#4338ca' }).then(r => { if(r.isConfirmed) window.doSubmitQuiz(); });
+                    } else { window.doSubmitQuiz(); }
+                };
+
+                window.doSubmitQuiz = async () => {
+                    if(window.quizTimer) clearInterval(window.quizTimer); 
+                    Swal.fire({ title: 'Memeriksa Jawaban...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                    
+                    let correctCount = 0;
+                    window.quizQuestions.forEach(q => { if(window.studentAnswers[q.id] === q.correct) correctCount++; });
+                    const finalScore = Math.round((correctCount / window.quizQuestions.length) * 100);
+                    const isPassed = finalScore >= 80;
+                    
+                    try {
+                        await window.supabaseClient.from('quiz_scores').insert([{ student_id: state.user.id, course_id: state.activeCourse.id, score: finalScore, passed: isPassed }]);
+                        Swal.fire({ icon: isPassed ? 'success' : 'error', title: `Skor Ujian: ${finalScore}`, text: isPassed ? 'Luar Biasa, Anda telah LULUS!' : 'Belum mencapai batas KKM (80).', confirmButtonColor: '#4338ca' }).then(() => { state.activeTab = 'materi'; loadTabContent(); });
+                    } catch (err) { Swal.fire('Error', 'Gagal menyimpan nilai ke server.', 'error'); }
+                };
+
+                window.renderQuizQ();
+
+                if(window.quizTimer) clearInterval(window.quizTimer);
+                window.quizTimer = setInterval(() => {
+                    window.timeLeft--;
+                    let m = Math.floor(window.timeLeft / 60);
+                    let s = window.timeLeft % 60;
+                    const td = document.getElementById('timerDisplay');
+                    if(td) {
+                        td.innerText = `${m}:${s<10?'0':''}${s}`;
+                        if(window.timeLeft <= 60) {
+                            td.parentElement.classList.replace('border-danger', 'bg-danger');
+                            td.parentElement.classList.replace('text-danger', 'text-white');
+                            td.parentElement.classList.add('animation-pulse');
+                        }
+                    }
+                    if(window.timeLeft <= 0) {
+                        clearInterval(window.quizTimer);
+                        Swal.fire('Waktu Ujian Habis!', 'Jawaban Anda telah otomatis dikumpulkan oleh sistem.', 'warning').then(() => window.doSubmitQuiz());
+                    }
+                }, 1000);
             }
-
-            document.getElementById('learnContent').innerHTML = `
-                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill mb-3">Ujian / Kuis</span>
-                <h3 class="fw-bold mb-4">${q.title}</h3>
-                <div class="bg-light p-4 rounded-3 mb-4"><p class="mb-0 fw-medium">${q.question}</p></div>
-                <div class="mb-4">
-                    <label class="form-label fw-bold text-muted">Jawaban Anda:</label>
-                    <textarea id="answerText" class="form-control bg-light border-0 p-3" rows="5" placeholder="Ketik jawaban Anda di sini..."></textarea>
-                </div>
-                <button onclick="submitQuiz('${q.id}')" class="btn btn-success rounded-pill px-5 py-2 fw-bold">Kirim Jawaban <i class="fa-solid fa-paper-plane ms-2"></i></button>
-            `;
         };
 
-        window.submitQuiz = async (quizId) => {
-            const answer = document.getElementById('answerText').value;
-            if(!answer.trim()) return Swal.fire('Oops', 'Jawaban tidak boleh kosong!', 'warning');
-            Swal.showLoading();
-            await window.supabaseClient.from('submissions').insert([{ quiz_id: quizId, student_id: state.user.id, answer }]);
-            Swal.fire('Berhasil', 'Jawaban terkirim! Menunggu penilaian guru.', 'success');
-            loadQuiz(quizId);
+        window.markDone = async (materialId) => { await window.supabaseClient.from('progress').insert([{ student_id: state.user.id, material_id: materialId, is_completed: true }]); loadTabContent(); };
+        
+        window.submitTask = async (materialId) => {
+            const fileInput = document.getElementById(`task_file_${materialId}`);
+            if (!fileInput.files.length) return Swal.fire('Oops!', 'Mohon pilih file tugas terlebih dahulu.', 'warning');
+            const file = fileInput.files[0]; if (file.size > 5 * 1024 * 1024) return Swal.fire('Oops!', 'Ukuran file terlalu besar. Maksimal 5MB.', 'warning');
+
+            Swal.fire({ title: 'Mengupload Tugas...', didOpen: () => { Swal.showLoading(); }});
+            try {
+                const fileName = `${state.user.id}_${materialId}_${Date.now()}.${file.name.split('.').pop()}`;
+                await window.supabaseClient.storage.from('tugas_siswa').upload(fileName, file);
+                const { data: urlData } = window.supabaseClient.storage.from('tugas_siswa').getPublicUrl(fileName);
+                
+                const { data: existingSub } = await window.supabaseClient.from('submissions').select('id').eq('student_id', state.user.id).eq('material_id', materialId).maybeSingle();
+                if (existingSub) await window.supabaseClient.from('submissions').update({ file_url: urlData.publicUrl, score: null }).eq('id', existingSub.id);
+                else await window.supabaseClient.from('submissions').insert([{ student_id: state.user.id, course_id: state.activeCourse.id, material_id: materialId, file_url: urlData.publicUrl }]);
+                
+                showToast('Tugas berhasil diupload!'); loadTabContent();
+            } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
         };
 
-        window.generateCertificate = () => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-            const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-            const qrCode = new QRious({ value: `Validasi: ${state.user.nisn} - ${state.activeCourse.title}`, size: 100 });
-            const qrImg = qrCode.toDataURL('image/png');
+        window.downloadCertificate = async () => {
+            Swal.fire({ title: 'Mencetak Sertifikat...', text: 'Mempersiapkan desain resolusi tinggi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            try {
+                const loadImage = (url) => new Promise((res, rej) => { const img = new Image(); img.crossOrigin = 'Anonymous'; img.onload = () => res(img); img.onerror = () => rej(new Error('Gagal: ' + url)); img.src = url; });
+                const shortId = state.user.id ? state.user.id.substring(0, 8).toUpperCase() : '001';
+                const certNumber = `CERT-EDU-${shortId}`;
+                const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); 
+                const qrText = `Validasi EduPro\nNomor: ${certNumber}\nTanggal: ${today}\nNama: ${state.user.full_name}\nKelas: ${state.activeCourse.title}\nSkor: ${window.courseFinalScore}`;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrText)}`;
+                const [bgImg, qrImg, logoImg] = await Promise.all([ loadImage('https://i.ibb.co.com/DDSSRmff/background-sertifikat1.png'), loadImage(qrUrl), loadImage('https://i.ibb.co.com/fYDFWPyM/logo-edu-Pro.png') ]);
+                const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); 
+                doc.addImage(bgImg, 'PNG', 0, 0, 297, 210);
+                
+                const logoLebar = 46; const logoTinggi = 16; const posisiX = 148.5 - (logoLebar / 2);
+                doc.addImage(logoImg, 'PNG', posisiX, 18, logoLebar, logoTinggi);
 
-            doc.setFillColor(248, 250, 252); doc.rect(0, 0, 297, 210, 'F');
-            doc.setDrawColor(79, 70, 229); doc.setLineWidth(5); doc.rect(10, 10, 277, 190);
-            
-            doc.setFont('helvetica', 'bold'); doc.setFontSize(36); doc.setTextColor(15, 23, 42);
-            doc.text("EduPro LMS", 148.5, 40, { align: 'center' });
-            
-            doc.setFontSize(16); doc.setTextColor(100, 116, 139); doc.setFont('helvetica', 'normal');
-            doc.text(`Nomor Sertifikat: CERT-EDU-${Math.floor(Math.random()*1000000)}`, 148.5, 55, { align: 'center' });
-            
-            doc.setFontSize(14); doc.text("Diberikan secara resmi kepada:", 148.5, 80, { align: 'center' });
-            doc.setFontSize(32); doc.setFont('helvetica', 'bold'); doc.setTextColor(79, 70, 229);
-            doc.text(state.user.full_name, 148.5, 95, { align: 'center' });
-            
-            doc.setFontSize(14); doc.setFont('helvetica', 'normal'); doc.setTextColor(15, 23, 42);
-            doc.text("Telah berhasil menyelesaikan program kelas:", 148.5, 115, { align: 'center' });
-            doc.setFontSize(20); doc.setFont('helvetica', 'bold');
-            doc.text(state.activeCourse.title, 148.5, 125, { align: 'center' });
-            
-            doc.setFontSize(12); doc.setFont('helvetica', 'normal'); doc.setTextColor(71, 85, 105);
-            doc.text(`Diberikan pada tanggal: ${today}`, 148.5, 145, { align: 'center' });
-            doc.addImage(qrImg, 'PNG', 137.5, 149, 22, 22);
-            
-            doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(15, 23, 42);
-            doc.text("Kartia Amriani", 148.5, 178, { align: 'center' }); 
-            doc.setDrawColor(15, 23, 42); doc.setLineWidth(0.5); doc.line(125, 180, 172, 180); 
-            doc.setFontSize(11); doc.setFont('helvetica', 'normal'); doc.setTextColor(71, 85, 105);
-            doc.text("Direktur Utama EduPro", 148.5, 186, { align: 'center' });
-
-            doc.save(`Sertifikat_${state.activeCourse.title}.pdf`);
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(28); doc.setTextColor(15, 23, 42);
+                doc.text("SERTIFIKAT KELULUSAN", 148.5, 65, { align: 'center' });
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(100, 116, 139);
+                doc.text(`Nomor Dokumen: ${certNumber}`, 148.5, 72, { align: 'center' });
+                doc.setFontSize(13); doc.setTextColor(71, 85, 105); doc.text("Dengan bangga dianugerahkan kepada:", 148.5, 87, { align: 'center' });
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(34); doc.setTextColor(15, 23, 42); 
+                doc.text(state.user.full_name, 148.5, 101, { align: 'center' }); 
+                doc.setFontSize(13); doc.setFont('helvetica', 'normal'); doc.setTextColor(71, 85, 105);
+                doc.text("Atas dedikasi dan keberhasilannya menyelesaikan program kelas premium:", 148.5, 115, { align: 'center' });
+                doc.setFontSize(24); doc.setFont('helvetica', 'bold'); doc.setTextColor(79, 70, 229); 
+                doc.text(state.activeCourse.title, 148.5, 127, { align: 'center' });
+                doc.setFontSize(13); doc.setFont('helvetica', 'italic'); doc.setTextColor(15, 23, 42);
+                doc.text(`Predikat: ${window.coursePredikat}   |   Skor Akhir: ${window.courseFinalScore}`, 148.5, 137, { align: 'center' });
+                doc.setFontSize(12); doc.setFont('helvetica', 'normal'); doc.setTextColor(71, 85, 105);
+                doc.text(`Diberikan pada tanggal: ${today}`, 148.5, 145, { align: 'center' });
+                doc.addImage(qrImg, 'PNG', 137.5, 149, 22, 22);
+                doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(15, 23, 42);
+                doc.text("Kartia Amriani", 148.5, 178, { align: 'center' }); 
+                doc.setDrawColor(15, 23, 42); doc.setLineWidth(0.5); doc.line(125, 180, 172, 180); 
+                doc.setFontSize(11); doc.setFont('helvetica', 'normal'); doc.setTextColor(71, 85, 105);
+                doc.text("Direktur Utama EduPro", 148.5, 186, { align: 'center' });
+                doc.save(`Sertifikat_${state.activeCourse.title.replace(/\s+/g, '_')}.pdf`); Swal.fire('Berhasil!', 'Sertifikat resmi berhasil dicetak.', 'success');
+            } catch(e) { Swal.fire('Gagal', 'Pastikan koneksi internet Anda stabil.', 'error'); }
         };
 
-        // Tunggu sampai app.js (Supabase) dimuat, lalu jalankan
-        setTimeout(renderApp, 500); 
+        renderApp();
     </script>
 </body>
 </html>
