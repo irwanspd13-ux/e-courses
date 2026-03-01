@@ -248,7 +248,7 @@
                         let mat = materialsData ? materialsData.find(m => m.id === sub.material_id) : null;
                         let studentName = user ? user.full_name : 'Siswa'; let materialTitle = mat ? mat.title : 'Materi';
 
-                        html += `<tr><td class="ps-4 py-3 fw-semibold text-dark">${studentName}</td><td class="py-3"><span class="small text-muted">${materialTitle}</span></td><td class="py-3 text-center"><a href="${sub.submission_url}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill"><i class="fa-solid fa-link me-1"></i> Buka</a></td><td class="py-3 text-center">${scoreBadge}</td><td class="pe-4 py-3 text-center"><button onclick="gradeSubmission('${sub.id}', '${studentName}')" class="btn btn-sm btn-success">Beri Nilai</button></td></tr>`;
+                        html += `<tr><td class="ps-4 py-3 fw-semibold text-dark">${studentName}</td><td class="py-3"><span class="small text-muted">${materialTitle}</span></td><td class="py-3 text-center"><a href="${sub.file_url}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill"><i class="fa-solid fa-link me-1"></i> Buka</a></td><td class="py-3 text-center">${scoreBadge}</td><td class="pe-4 py-3 text-center"><button onclick="gradeSubmission('${sub.id}', '${studentName}')" class="btn btn-sm btn-success">Beri Nilai</button></td></tr>`;
                     });
                 }
                 html += `</tbody></table></div></div>`; content.innerHTML = html;
@@ -345,3 +345,4 @@
     </script>
 </body>
 </html>
+
