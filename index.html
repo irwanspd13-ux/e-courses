@@ -523,6 +523,8 @@
                                 
                                 <div class="ql-editor p-0 mb-4">${mat.description}</div> 
                                 
+                                ${mat.embed_code ? `<div class="mt-4 mb-4 ratio ratio-16x9 bg-dark rounded-4 overflow-hidden shadow-sm">${mat.embed_code}</div>` : ''}
+                                
                                 ${mat.content_url ? `
                                     <div class="mt-4 p-4 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-4">
                                         <div class="d-flex align-items-center gap-2 mb-3">
