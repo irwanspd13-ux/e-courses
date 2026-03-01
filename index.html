@@ -337,74 +337,93 @@
             } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
         };
 
-        // ==========================================
-        // CETAK PDF SERTIFIKAT DENGAN BACKGROUND & QR CODE
+       // ==========================================
+        // CETAK PDF SERTIFIKAT FULL CENTERED + LOGO & QR CODE
         // ==========================================
         window.downloadCertificate = async () => {
-            Swal.fire({ title: 'Membuat Sertifikat...', text: 'Mengunduh desain dan QR Code...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            Swal.fire({ title: 'Membuat Sertifikat...', text: 'Mempersiapkan desain resolusi tinggi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
             
             try {
-                // Fungsi untuk memuat gambar dari URL agar bisa masuk ke PDF
+                // Fungsi untuk memuat gambar dari URL agar masuk ke PDF
                 const loadImage = (url) => {
                     return new Promise((resolve, reject) => {
                         const img = new Image();
-                        img.crossOrigin = 'Anonymous'; // Mengatasi masalah CORS / Izin Server
+                        img.crossOrigin = 'Anonymous'; 
                         img.onload = () => resolve(img);
-                        img.onerror = () => reject(new Error('Gagal memuat gambar: ' + url));
+                        img.onerror = () => reject(new Error('Gagal memuat: ' + url));
                         img.src = url;
                     });
                 };
 
-                // 1. Siapkan Isi QR Code (Data Validasi Kelulusan)
-                const qrText = `Sertifikat Valid EduPro\nNama: ${state.user.full_name}\nLulus Kelas: ${state.activeCourse.title}\nPredikat: ${window.coursePredikat}\nSkor: ${window.courseFinalScore}`;
+                // 1. Ambil 8 huruf pertama dari ID Siswa untuk Nomor Sertifikat agar rapi
+                const shortId = state.user.id ? state.user.id.substring(0, 8).toUpperCase() : '001';
+                const certNumber = `CERT-EDU-${shortId}`;
+                
+                // Siapkan Data QR Code
+                const qrText = `Sertifikat Valid EduPro\nNomor: ${certNumber}\nNama: ${state.user.full_name}\nLulus Kelas: ${state.activeCourse.title}\nPredikat: ${window.coursePredikat}\nSkor: ${window.courseFinalScore}`;
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrText)}`;
                 
-                // Link Background Sertifikat Anda
+                // Link Background & Logo Anda
                 const bgUrl = 'https://i.ibb.co.com/DDSSRmff/background-sertifikat1.png';
+                const logoUrl = 'https://i.ibb.co.com/fYDFWPyM/logo-edu-Pro.png';
 
-                // 2. Download Gambar Background & QR Code secara bersamaan
-                const [bgImg, qrImg] = await Promise.all([
+                // 2. Download Semua Gambar Secara Bersamaan
+                const [bgImg, qrImg, logoImg] = await Promise.all([
                     loadImage(bgUrl),
-                    loadImage(qrUrl)
+                    loadImage(qrUrl),
+                    loadImage(logoUrl)
                 ]);
 
                 const { jsPDF } = window.jspdf; 
                 const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); // Ukuran A4 Landscape (297 x 210 mm)
 
-                // 3. Pasang Background (Penuhi seluruh kertas)
+                // 3. Pasang Background (Penuhi Kertas)
                 doc.addImage(bgImg, 'PNG', 0, 0, 297, 210);
 
-                // 4. Pasang Teks Sertifikat (Di tengah halaman)
-                doc.setFont('helvetica', 'bold'); doc.setFontSize(28); doc.setTextColor(15, 23, 42); 
-                doc.text(state.user.full_name, 148.5, 95, { align: 'center' }); // Nama Siswa
+                // 4. Pasang Logo EduPro di Tengah Atas (Posisi X=133.5, Y=25)
+                doc.addImage(logoImg, 'PNG', 133.5, 25, 30, 30);
+
+                // 5. Pasang Nomor Sertifikat
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(100, 116, 139);
+                doc.text(`Nomor Sertifikat: ${certNumber}`, 148.5, 62, { align: 'center' });
+
+                // 6. Pasang Teks Pengantar
+                doc.setFontSize(14); doc.setTextColor(15, 23, 42);
+                doc.text("Diberikan secara resmi kepada:", 148.5, 78, { align: 'center' });
+
+                // 7. Nama Siswa
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(32); doc.setTextColor(15, 23, 42); 
+                doc.text(state.user.full_name, 148.5, 92, { align: 'center' }); 
                 
+                // 8. Teks Kelulusan
                 doc.setFontSize(14); doc.setFont('helvetica', 'normal');
-                doc.text("Telah berhasil menyelesaikan program kelas:", 148.5, 115, { align: 'center' });
+                doc.text("Telah berhasil menyelesaikan program kelas:", 148.5, 108, { align: 'center' });
                 
-                doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor(79, 70, 229); // Warna Biru/Ungu
-                doc.text(state.activeCourse.title, 148.5, 128, { align: 'center' });
+                // 9. Nama Kelas
+                doc.setFontSize(24); doc.setFont('helvetica', 'bold'); doc.setTextColor(79, 70, 229);
+                doc.text(state.activeCourse.title, 148.5, 120, { align: 'center' });
                 
+                // 10. Predikat & Skor
                 doc.setFontSize(14); doc.setFont('helvetica', 'italic'); doc.setTextColor(15, 23, 42);
-                doc.text(`Dengan Predikat: ${window.coursePredikat} (Skor: ${window.courseFinalScore})`, 148.5, 140, { align: 'center' });
+                doc.text(`Dengan Predikat: ${window.coursePredikat} (Skor: ${window.courseFinalScore})`, 148.5, 130, { align: 'center' });
 
-                // 5. Pasang QR Code & Nama Direktur di Sudut Kanan Bawah
-                // QR Code (X: 235, Y: 155, Ukuran: 25x25 mm)
-                doc.addImage(qrImg, 'PNG', 235, 155, 25, 25);
+                // 11. Pasang QR Code (Posisi X=136, Y=142)
+                doc.addImage(qrImg, 'PNG', 136, 142, 25, 25);
                 
-                // Teks Nama Direktur persis di bawah QR Code
-                doc.setFontSize(12); doc.setFont('helvetica', 'bold');
-                doc.text("Kartia Amriani", 247.5, 186, { align: 'center' }); 
+                // 12. Nama Direktur & Jabatan
+                doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(15, 23, 42);
+                doc.text("Kartia Amriani", 148.5, 175, { align: 'center' }); 
                 
-                doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-                doc.text("Direktur Utama", 247.5, 191, { align: 'center' });
+                doc.setFontSize(11); doc.setFont('helvetica', 'normal');
+                doc.text("Direktur Utama EduPro", 148.5, 181, { align: 'center' });
 
-                // 6. Simpan File PDF
+                // 13. Simpan File PDF
                 doc.save(`Sertifikat_${state.activeCourse.title.replace(/\s+/g, '_')}.pdf`);
-                Swal.fire('Berhasil!', 'Sertifikat berhasil dicetak dan diunduh!', 'success');
+                Swal.fire('Berhasil!', 'Sertifikat resmi berhasil dicetak.', 'success');
                 
             } catch(e) { 
                 console.error(e);
-                Swal.fire('Gagal', 'Koneksi terputus saat memuat desain sertifikat. Pastikan internet Anda stabil lalu coba lagi.', 'error'); 
+                Swal.fire('Gagal', 'Terjadi kesalahan saat memuat desain. Pastikan internet stabil.', 'error'); 
             }
         };
 
@@ -412,5 +431,3 @@
     </script>
 </body>
 </html>
-
-
