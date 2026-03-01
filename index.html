@@ -663,14 +663,16 @@
                     
                     if (updateErr) throw updateErr; // Lemparkan error jika gagal update
                 } else {
-                    // Insert data baru (DENGAN PENAMBAHAN ID OTOMATIS)
+                    // Insert data baru (Biarkan Supabase yang membuat ID otomatis)
                     const { error: insertErr } = await window.supabaseClient.from('submissions').insert([{
-                        id: 'SUB-' + Date.now(), // ID Manual untuk menghindari error Primary Key
                         student_id: state.user.id,
                         course_id: state.activeCourse.id,
                         material_id: materialId,
                         submission_url: fileUrl
                     }]);
+                    
+                    if (insertErr) throw insertErr; // Lemparkan error jika gagal insert
+                }
                     
                     if (insertErr) throw insertErr; // Lemparkan error jika gagal insert
                 }
@@ -697,6 +699,7 @@
     </script>
 </body>
 </html>
+
 
 
 
