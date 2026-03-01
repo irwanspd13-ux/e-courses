@@ -5,34 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduPro LMS | Portal Pembelajaran</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
+    
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
     <style>
         :root { --primary-color: #4f46e5; --primary-hover: #4338ca; --bg-color: #f8fafc; --text-main: #0f172a; --text-muted: #64748b; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
-        .card { border: none; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;}
-        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .card { border: none; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); transition: transform 0.2s ease;}
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
         .btn { font-weight: 600; border-radius: 0.75rem; padding: 0.6rem 1.2rem; }
         .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); color: white; }
-        .btn-primary:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); color: white; }
-        .form-control { border-radius: 0.75rem; padding: 0.75rem 1rem; border-color: #e2e8f0; }
-        .form-control:focus { border-color: var(--primary-color); box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25); }
+        .form-control { border-radius: 0.75rem; padding: 0.75rem 1rem; }
         .navbar { background-color: #ffffff; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); padding: 1rem 0; }
         .navbar-brand { font-weight: 800; color: var(--primary-color) !important; font-size: 1.5rem; }
         .nav-tabs .nav-link { border: none; color: var(--text-muted); font-weight: 600; padding: 1rem 1.5rem; border-bottom: 3px solid transparent; }
         .nav-tabs .nav-link.active { color: var(--primary-color); background: transparent; border-bottom: 3px solid var(--primary-color); }
-        .loader-container { display: flex; justify-content: center; align-items: center; padding: 3rem; }
-        .swal2-html-container { text-align: left !important; }
-        .price-badge { position: absolute; top: 1rem; right: 1rem; font-size: 0.85rem; font-weight: 700; padding: 0.5rem 0.8rem; border-radius: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 2;}
+        .price-badge { position: absolute; top: 1rem; right: 1rem; font-size: 0.85rem; font-weight: 700; padding: 0.5rem 0.8rem; border-radius: 2rem; z-index: 2;}
         .progress { height: 0.75rem; border-radius: 1rem; background-color: #e2e8f0; }
         .progress-bar.bg-success { background-color: #10b981 !important; }
-        iframe { border-radius: 0.5rem; border: none; width: 100%; }
-        .certificate-btn { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+        
+        /* Render Rich Text Agar Rapi */
+        .ql-editor { padding: 0 !important; font-family: inherit; font-size: inherit; }
+        .ql-editor img { max-width: 100%; border-radius: 8px; margin-top: 10px; }
     </style>
      
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -43,16 +41,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
-    <script src="app.js"></script>
-
-        // ==========================================
-        // STATE KHUSUS UJIAN/KUIS
-        // ==========================================
-        let quizQuestions = [];      // Menyimpan semua soal
-        let currentQuestionIndex = 0; // Posisi soal saat ini (dimulai dari 0)
-        let studentAnswers = {};     // Menyimpan jawaban siswa { id_soal: "A", id_soal2: "B" }
-        let quizTimerInterval = null; // Interval timer
-        let timeLeft = 15 * 60;      // Waktu ujian (Contoh: 15 menit x 60 detik = 900 detik)
+    <script src="app.js"></script>   
 
     <script>
         let state = {
@@ -68,19 +57,9 @@
 
         const renderApp = () => {
             const app = document.getElementById('app');
-            let html = `
-                <nav class="navbar navbar-expand-lg sticky-top">
-                    <div class="container">
-                        <a class="navbar-brand d-flex align-items-center gap-2" href="#" onclick="navigate(${state.user ? "'dashboard'" : "'catalog'"})"><i class="fa-solid fa-graduation-cap"></i> EduPro</a>
-                        <div class="d-flex align-items-center gap-3">
-            `;
-            if (state.user) {
-                html += `<div class="text-end d-none d-sm-block"><div class="fw-bold text-dark lh-1">${state.user.full_name}</div><small class="text-muted text-capitalize">Siswa</small></div>
-                         <button onclick="handleLogout()" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>`;
-            } else {
-                html += `<button onclick="navigate('login')" class="btn btn-outline-primary btn-sm fw-bold">Masuk</button>
-                         <button onclick="navigate('register')" class="btn btn-primary btn-sm fw-bold">Daftar</button>`;
-            }
+            let html = `<nav class="navbar navbar-expand-lg sticky-top"><div class="container"><a class="navbar-brand" href="#" onclick="navigate(${state.user ? "'dashboard'" : "'catalog'"})"><i class="fa-solid fa-graduation-cap"></i> EduPro</a><div class="d-flex align-items-center gap-3">`;
+            if (state.user) { html += `<div class="text-end d-none d-sm-block"><div class="fw-bold">${state.user.full_name}</div><small class="text-muted">Siswa</small></div><button onclick="handleLogout()" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>`; } 
+            else { html += `<button onclick="navigate('login')" class="btn btn-outline-primary btn-sm fw-bold">Masuk</button><button onclick="navigate('register')" class="btn btn-primary btn-sm fw-bold">Daftar</button>`; }
             html += `</div></div></nav><main class="container py-4 flex-grow-1" id="main-content"></main>`;
             app.innerHTML = html;
 
@@ -95,398 +74,270 @@
         const navigate = (view, courseData = null) => {
             state.currentView = view;
             if (courseData) { state.activeCourse = courseData; state.activeTab = 'materi'; }
-            if (view === 'dashboard' || view === 'catalog') state.activeCourse = null;
             renderApp();
         };
 
         const renderPublicCatalog = async (container) => {
-            container.innerHTML = `
-                <div class="text-center mb-5 mt-4"><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3 fw-bold">Tempat Belajar Terbaik</span><h1 class="fw-bold text-dark mb-3">Tingkatkan Keahlian Anda Hari Ini</h1><p class="text-muted" style="max-width: 600px; margin: 0 auto;">Pilih dari berbagai katalog kelas interaktif kami. Daftar sekarang untuk mulai belajar dan dapatkan sertifikat kelulusan.</p></div>
-                <div id="publicCourseList" class="row g-4"><div class="loader-container"><div class="spinner-border text-primary"></div></div></div>`;
-            const listContainer = document.getElementById('publicCourseList');
-            try {
-                const { data: courses } = await window.supabaseClient.from('courses').select('*').order('created_at', { ascending: false });
-                state.courses = courses || [];
-                if (state.courses.length === 0) return listContainer.innerHTML = `<div class="col-12 text-center text-muted p-5 bg-white rounded">Belum ada kelas tersedia.</div>`;
-                let html = '';
-                state.courses.forEach(course => {
-                    const price = parseInt(course.price) || 0;
-                    const isFree = price === 0;
-                    let badgeHtml = isFree ? `<span class="price-badge bg-success text-white">Gratis</span>` : `<span class="price-badge bg-warning text-dark"><i class="fa-solid fa-tag me-1"></i>Rp ${formatRupiah(price)}</span>`;
-                    html += `<div class="col-12 col-md-6 col-lg-4"><div class="card card-hover h-100 border-0" onclick="handleGuestClick()" style="cursor: pointer;">${badgeHtml}<div class="bg-primary bg-opacity-10 p-4 rounded-top text-center" style="height: 120px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-book-open-reader text-primary fa-3x"></i></div><div class="card-body d-flex flex-column"><h5 class="card-title fw-bold">${course.title}</h5><p class="card-text text-muted small line-clamp-2 flex-grow-1">${course.description}</p><button class="btn btn-primary w-100 mt-3">Daftar Kelas Ini</button></div></div></div>`;
-                });
-                listContainer.innerHTML = html;
-            } catch (err) { listContainer.innerHTML = `<div class="col-12 text-center text-danger p-5 bg-white rounded">Gagal memuat katalog.</div>`; }
+            container.innerHTML = `<div class="text-center mb-5 mt-4"><h1 class="fw-bold">Tingkatkan Keahlian Anda</h1><p class="text-muted">Pilih kelas interaktif kami.</p></div><div id="publicCourseList" class="row g-4"></div>`;
+            const { data: courses } = await window.supabaseClient.from('courses').select('*').order('created_at', { ascending: false });
+            let html = (courses||[]).map(c => `<div class="col-md-4"><div class="card card-hover h-100" onclick="handleGuestClick()"><span class="price-badge ${c.price==0?'bg-success text-white':'bg-warning'}">${c.price==0?'Gratis':'Rp '+formatRupiah(c.price)}</span><div class="bg-primary bg-opacity-10 p-4 text-center h-100 d-flex flex-column justify-content-center"><h5 class="fw-bold mt-3">${c.title}</h5><button class="btn btn-primary w-100 mt-3">Daftar Kelas</button></div></div></div>`).join('');
+            document.getElementById('publicCourseList').innerHTML = html || `<div class="col-12 text-center text-muted">Belum ada kelas.</div>`;
         };
-
-        window.handleGuestClick = () => { Swal.fire({ title: 'Akses Dibatasi', text: 'Silakan Login atau Daftar akun terlebih dahulu.', icon: 'info', showCancelButton: true, confirmButtonText: 'Login', cancelButtonText: 'Daftar Baru', confirmButtonColor: '#4f46e5', cancelButtonColor: '#10b981' }).then((result) => { if (result.isConfirmed) navigate('login'); else if (result.dismiss === Swal.DismissReason.cancel) navigate('register'); }); };
+        window.handleGuestClick = () => { Swal.fire({ title: 'Akses Dibatasi', text: 'Silakan Login/Daftar.', icon: 'info', showCancelButton: true, confirmButtonText: 'Login', cancelButtonText: 'Daftar Baru' }).then((r) => { if(r.isConfirmed) navigate('login'); else if(r.dismiss===Swal.DismissReason.cancel) navigate('register'); }); };
 
         const renderLogin = (container) => {
-            container.innerHTML = `
-                <div class="row justify-content-center align-items-center h-100 mt-5"><div class="col-12 col-md-6 col-lg-5"><div class="card p-4 p-md-5 text-center shadow-sm"><h2 class="fw-bold mb-1 text-primary">Selamat Datang</h2><p class="text-muted mb-4">Masuk ke ruang belajar Anda</p>
-                            <form id="loginForm"><div class="mb-3 text-start"><label class="form-label fw-semibold small">NISN / Username</label><input type="text" id="nisn" class="form-control" placeholder="Masukkan NISN..." required></div><div class="mb-4 text-start"><label class="form-label fw-semibold small">Password</label><input type="password" id="password" class="form-control" placeholder="Masukkan Password..." required></div><button type="submit" class="btn btn-primary w-100 py-2 mb-3" id="btnLogin"><i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Masuk Sekarang</button><p class="text-muted small">Belum punya akun? <a href="#" onclick="navigate('register')" class="text-primary fw-bold text-decoration-none">Daftar di sini</a></p></form></div></div></div>`;
-            document.getElementById('loginForm').addEventListener('submit', async (e) => {
-                e.preventDefault(); const btn = document.getElementById('btnLogin'); btn.innerHTML = 'Memeriksa...'; btn.disabled = true;
-                const inputNisn = document.getElementById('nisn').value; const inputPassword = document.getElementById('password').value;
-                try {
-                    const { data: user, error } = await window.supabaseClient.from('users').select('*').eq('nisn', inputNisn).maybeSingle(); 
-                    if (!user) { Swal.fire('Gagal', 'NISN tidak terdaftar.', 'error'); } else if (user.password !== inputPassword) { Swal.fire('Gagal', 'Password salah.', 'error'); } else if (user.role !== 'student') { Swal.fire('Akses Ditolak', 'Halaman ini khusus Siswa.', 'warning'); } 
-                    else { state.user = user; localStorage.setItem('edupro_student', JSON.stringify(user)); showToast(`Halo, ${user.full_name}!`); navigate('dashboard'); }
-                } catch (err) { Swal.fire('Error', 'Terjadi kesalahan sistem saat login.', 'error'); } finally { btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Masuk Sekarang'; btn.disabled = false; }
-            });
+            container.innerHTML = `<div class="row justify-content-center mt-5"><div class="col-md-5"><div class="card p-5 text-center"><h2 class="fw-bold text-primary">Selamat Datang</h2><form id="loginForm"><input type="text" id="nisn" class="form-control mb-3" placeholder="NISN" required><input type="password" id="password" class="form-control mb-4" placeholder="Password" required><button class="btn btn-primary w-100 mb-3" id="btnLogin">Masuk</button><a href="#" onclick="navigate('register')">Daftar di sini</a></form></div></div></div>`;
+            document.getElementById('loginForm').addEventListener('submit', async (e) => { e.preventDefault(); const { data: user } = await window.supabaseClient.from('users').select('*').eq('nisn', document.getElementById('nisn').value).maybeSingle(); if(user && user.password === document.getElementById('password').value && user.role === 'student'){ state.user = user; localStorage.setItem('edupro_student', JSON.stringify(user)); navigate('dashboard'); } else { Swal.fire('Gagal', 'Akses ditolak atau data salah.', 'error'); } });
         };
 
         const renderRegister = (container) => {
-            container.innerHTML = `
-                <div class="row justify-content-center align-items-center h-100 mt-4"><div class="col-12 col-md-6 col-lg-5"><div class="card p-4 p-md-5 shadow-sm border-top border-4 border-primary"><h3 class="fw-bold mb-1 text-center">Buat Akun Baru</h3><p class="text-muted mb-4 text-center small">Mulai perjalanan belajar Anda</p>
-                            <form id="registerForm"><div class="mb-3"><label class="form-label fw-semibold small">Nama Lengkap</label><input type="text" id="regName" class="form-control" placeholder="Cth: Budi Santoso" required></div><div class="mb-3"><label class="form-label fw-semibold small">NISN / Username</label><input type="text" id="regNisn" class="form-control" placeholder="Cth: 12345678" required></div><div class="mb-4"><label class="form-label fw-semibold small">Buat Password</label><input type="password" id="regPassword" class="form-control" placeholder="Minimal 6 karakter" required minlength="6"></div><button type="submit" class="btn btn-success w-100 py-2 mb-3" id="btnRegister"><i class="fa-solid fa-user-plus me-2"></i> Daftar Sekarang</button><p class="text-center text-muted small mb-0">Sudah punya akun? <a href="#" onclick="navigate('login')" class="text-primary fw-bold text-decoration-none">Login di sini</a></p></form></div></div></div>`;
-            document.getElementById('registerForm').addEventListener('submit', async (e) => {
-                e.preventDefault(); const btn = document.getElementById('btnRegister'); btn.innerHTML = 'Memproses...'; btn.disabled = true;
-                const regName = document.getElementById('regName').value; const regNisn = document.getElementById('regNisn').value; const regPassword = document.getElementById('regPassword').value;
-                try {
-                    const { data: existingUser } = await window.supabaseClient.from('users').select('nisn').eq('nisn', regNisn).maybeSingle();
-                    if (existingUser) { Swal.fire('Gagal', 'NISN sudah terdaftar! Silakan langsung Login.', 'error'); btn.innerHTML = '<i class="fa-solid fa-user-plus me-2"></i> Daftar Sekarang'; btn.disabled = false; return; }
-                    const { error } = await window.supabaseClient.from('users').insert([{ full_name: regName, nisn: regNisn, password: regPassword, role: 'student' }]);
-                    if (error) throw error; Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Pendaftaran berhasil! Silakan Login.', confirmButtonColor: '#4f46e5' }).then(() => navigate('login'));
-                } catch (err) { Swal.fire('Error', 'Gagal mendaftar. Pastikan koneksi stabil.', 'error'); btn.innerHTML = '<i class="fa-solid fa-user-plus me-2"></i> Daftar Sekarang'; btn.disabled = false; }
-            });
+            container.innerHTML = `<div class="row justify-content-center mt-5"><div class="col-md-5"><div class="card p-5"><h3 class="fw-bold text-center">Buat Akun</h3><form id="registerForm"><input type="text" id="regName" class="form-control mb-3" placeholder="Nama Lengkap" required><input type="text" id="regNisn" class="form-control mb-3" placeholder="NISN" required><input type="password" id="regPassword" class="form-control mb-4" placeholder="Password" required minlength="6"><button class="btn btn-success w-100 mb-3">Daftar</button><p class="text-center"><a href="#" onclick="navigate('login')">Login di sini</a></p></form></div></div></div>`;
+            document.getElementById('registerForm').addEventListener('submit', async (e) => { e.preventDefault(); await window.supabaseClient.from('users').insert([{ full_name: document.getElementById('regName').value, nisn: document.getElementById('regNisn').value, password: document.getElementById('regPassword').value, role: 'student' }]); Swal.fire('Berhasil', 'Silakan Login', 'success').then(()=>navigate('login')); });
         };
 
-        const handleLogout = () => { Swal.fire({ title: 'Keluar?', text: "Sesi akan diakhiri.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Keluar' }).then((res) => { if (res.isConfirmed) { localStorage.removeItem('edupro_student'); state.user = null; navigate('catalog'); } }); };
+        const handleLogout = () => { localStorage.removeItem('edupro_student'); state.user = null; navigate('catalog'); };
 
         const renderDashboard = async (container) => {
-            if(!container) container = document.getElementById('main-content');
-            container.innerHTML = `<div class="card text-white p-4 p-md-5 mb-4 rounded-4 shadow-sm" style="background: linear-gradient(135deg, var(--primary-color), #8b5cf6);"><h2 class="fw-bold">Halo, ${state.user.full_name}! 👋</h2><p class="mb-0 opacity-75">Selamat datang di ruang belajar Anda.</p></div><h4 class="fw-bold mb-3">Katalog Kelas Pembelajaran</h4><div id="courseList" class="row g-4"><div class="loader-container"><div class="spinner-border text-primary"></div></div></div>`;
-            const listContainer = document.getElementById('courseList');
-            try {
-                const { data: courses } = await window.supabaseClient.from('courses').select('*').order('created_at', { ascending: false });
-                const { data: trxData } = await window.supabaseClient.from('transactions').select('*').eq('student_id', state.user.id);
-                state.courses = courses || []; const transactions = trxData || [];
-                if (state.courses.length === 0) return listContainer.innerHTML = `<div class="col-12 text-center text-muted p-5 bg-white rounded">Belum ada kelas tersedia.</div>`;
-                let html = '';
-                state.courses.forEach(course => {
-                    const price = parseInt(course.price) || 0; const isFree = price === 0;
-                    const isOwned = transactions.some(t => t.course_id === course.id && (t.status === 'PAID' || t.status === 'approved'));
-                    const hasAccess = isFree || isOwned;
-                    let badgeHtml = isFree ? `<span class="price-badge bg-success text-white">Gratis</span>` : `<span class="price-badge bg-warning text-dark"><i class="fa-solid fa-tag me-1"></i>Rp ${formatRupiah(price)}</span>`;
-                    if (isOwned && !isFree) badgeHtml = `<span class="price-badge bg-primary text-white"><i class="fa-solid fa-circle-check me-1"></i>Dibeli</span>`;
-                    html += `<div class="col-12 col-md-6 col-lg-4"><div class="card card-hover h-100 border-0" onclick="openStudentCourseGlobal('${course.id}', ${hasAccess})" style="cursor: pointer;">${badgeHtml}<div class="bg-primary bg-opacity-10 p-4 rounded-top text-center" style="height: 120px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid ${hasAccess ? 'fa-book-open-reader text-primary' : 'fa-lock text-danger'} fa-3x"></i></div><div class="card-body d-flex flex-column"><h5 class="card-title fw-bold">${course.title}</h5><p class="card-text text-muted small line-clamp-2 flex-grow-1">${course.description}</p>${hasAccess ? `<div class="mt-3 text-primary fw-bold small">Mulai Belajar <i class="fa-solid fa-arrow-right ms-1"></i></div>` : `<button class="btn btn-danger w-100 mt-3"><i class="fa-solid fa-cart-shopping me-2"></i> Beli Akses</button>`}</div></div></div>`;
-                });
-                listContainer.innerHTML = html;
-            } catch (err) { listContainer.innerHTML = `<div class="col-12 text-center text-danger">Gagal memuat dashboard.</div>`; }
+            container.innerHTML = `<div class="card text-white p-5 mb-4 rounded-4" style="background: linear-gradient(135deg, var(--primary-color), #8b5cf6);"><h2 class="fw-bold">Halo, ${state.user.full_name}! 👋</h2></div><h4 class="fw-bold mb-3">Katalog Kelas</h4><div id="courseList" class="row g-4"></div>`;
+            const { data: courses } = await window.supabaseClient.from('courses').select('*').order('created_at', { ascending: false });
+            const { data: trxData } = await window.supabaseClient.from('transactions').select('*').eq('student_id', state.user.id);
+            let html = (courses||[]).map(c => {
+                const isOwned = (trxData||[]).some(t => t.course_id === c.id && (t.status === 'PAID' || t.status === 'approved'));
+                const hasAccess = c.price == 0 || isOwned;
+                return `<div class="col-md-4"><div class="card card-hover h-100" onclick="openStudentCourseGlobal('${c.id}', ${hasAccess})" style="cursor: pointer;"><span class="price-badge ${hasAccess?'bg-primary text-white':(c.price==0?'bg-success text-white':'bg-warning')}">${hasAccess?(c.price==0?'Gratis':'Akses Dibuka'):'Rp '+formatRupiah(c.price)}</span><div class="bg-primary bg-opacity-10 p-4 text-center d-flex flex-column justify-content-center h-100"><h5 class="fw-bold mt-3">${c.title}</h5>${hasAccess?'<div class="mt-3 text-primary fw-bold">Mulai Belajar <i class="fa-solid fa-arrow-right"></i></div>':'<button class="btn btn-danger w-100 mt-3">Beli Akses</button>'}</div></div></div>`;
+            }).join('');
+            document.getElementById('courseList').innerHTML = html || `<div class="col-12 text-center text-muted">Belum ada kelas.</div>`;
+            state.courses = courses;
         };
 
         window.openStudentCourseGlobal = (id, hasAccess) => { const course = state.courses.find(c => c.id === id); if (course) hasAccess ? navigate('courseDetail', course) : window.enrollCourse(course.id, course.price); };
-
-        window.enrollCourse = async (courseId, price) => {
-            const cleanPrice = String(price).replace(/[^0-9]/g, ''); const numPrice = parseInt(cleanPrice) || 0;
-            const isFree = numPrice === 0; const statusTransaksi = isFree ? 'approved' : 'pending';
-            const confirmText = isFree ? 'Ya, ikuti kelas ini!' : 'Ya, daftar kelas!';
-            Swal.fire({ title: isFree ? 'Ikuti Kelas Ini?' : 'Daftar Kelas Berbayar?', text: isFree ? "Kelas ini gratis, Anda bisa langsung mulai belajar." : `Anda akan mendaftar kelas ini dengan biaya Rp ${numPrice.toLocaleString('id-ID')}.`, icon: 'question', showCancelButton: true, confirmButtonColor: '#4f46e5', confirmButtonText: confirmText, cancelButtonText: 'Batal'
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                    try {
-                        const { data: existing } = await window.supabaseClient.from('transactions').select('id').eq('student_id', state.user.id).eq('course_id', courseId).maybeSingle();
-                        if (existing) { Swal.fire('Info', 'Anda sudah terdaftar.', 'info'); renderDashboard(); return; }
-                        const newTrxId = 'TRX-' + Date.now();
-                        const { error } = await window.supabaseClient.from('transactions').insert([{ id: newTrxId, student_id: state.user.id, course_id: courseId, amount: numPrice, status: statusTransaksi }]);
-                        if (error) throw error;
-                        if (isFree) { Swal.fire('Berhasil!', 'Anda telah terdaftar.', 'success').then(() => renderDashboard()); } 
-                        else {
-                            Swal.fire({ title: 'Selesaikan Pembayaran', html: `<div class="text-center mt-2"><p class="mb-3 text-dark">Scan QRIS di bawah ini untuk membayar sebesar:<br><strong class="fs-4 text-primary">Rp ${numPrice.toLocaleString('id-ID')}</strong></p><div class="p-3 bg-white border rounded shadow-sm d-inline-block mb-3"><img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Pembayaran_EduPro_Rp${numPrice}" alt="QRIS Barcode" class="img-fluid" style="width: 200px; height: 200px;"></div><div class="alert alert-warning small text-start mb-0"><i class="fa-solid fa-circle-info me-1"></i> Status pendaftaran Anda <b>PENDING</b>. Hubungi Guru untuk Approve.</div></div>`, icon: 'info', confirmButtonText: '<i class="fa-solid fa-check-circle me-1"></i> Saya Sudah Bayar', confirmButtonColor: '#4f46e5', allowOutsideClick: false }).then(() => { renderDashboard(); });
-                        }
-                    } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
-                }
-            });
-        };
+        window.enrollCourse = async (courseId, price) => { Swal.fire({ title: 'Daftar Kelas?', showCancelButton: true, confirmButtonText: 'Ya' }).then(async (res) => { if(res.isConfirmed) { await window.supabaseClient.from('transactions').insert([{ id: 'TRX-'+Date.now(), student_id: state.user.id, course_id: courseId, amount: price, status: price==0?'approved':'pending' }]); renderDashboard(document.getElementById('main-content')); Swal.fire('Info', price==0?'Terdaftar!':'Status Pending, hubungi Guru.', 'success'); } }); };
 
         const renderCourseDetail = async (container) => {
+            // Bersihkan timer kuis setiap kali keluar/pindah kelas
+            if(window.quizTimer) clearInterval(window.quizTimer);
+
             container.innerHTML = `
-                <button onclick="navigate('dashboard')" class="btn btn-link text-decoration-none text-muted p-0 mb-4 fw-semibold"><i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Dashboard</button>
-                <div class="card bg-dark text-white p-4 p-md-5 mb-4 rounded-4" style="background: linear-gradient(to right, #0f172a, #334155) !important;">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                        <div><h2 class="fw-bold">${state.activeCourse.title}</h2><p class="mb-0 text-white-50">${state.activeCourse.description}</p></div>
-                        <div id="certificateContainer"></div>
-                    </div>
-                </div>
-                <ul class="nav nav-tabs mb-4"><li class="nav-item"><button class="nav-link ${state.activeTab === 'materi' ? 'active' : ''}" onclick="switchTab('materi')"><i class="fa-solid fa-book me-2"></i>Materi Belajar</button></li><li class="nav-item"><button class="nav-link ${state.activeTab === 'kuis' ? 'active' : ''}" onclick="switchTab('kuis')"><i class="fa-solid fa-list-check me-2"></i>Ujian Kuis</button></li></ul>
-                <div id="tabContent"><div class="loader-container"><div class="spinner-border text-primary"></div></div></div>`;
+                <button onclick="navigate('dashboard')" class="btn btn-link text-muted p-0 mb-4"><i class="fa-solid fa-arrow-left me-1"></i> Dashboard</button>
+                <div class="card bg-dark text-white p-5 mb-4 rounded-4" style="background: linear-gradient(to right, #0f172a, #334155) !important;"><div class="d-flex justify-content-between align-items-center"><div><h2 class="fw-bold">${state.activeCourse.title}</h2><p class="mb-0 text-white-50">${state.activeCourse.description}</p></div><div id="certificateContainer"></div></div></div>
+                <ul class="nav nav-tabs mb-4"><li class="nav-item"><button class="nav-link ${state.activeTab === 'materi' ? 'active' : ''}" onclick="switchTab('materi')"><i class="fa-solid fa-book me-2"></i>Materi</button></li><li class="nav-item"><button class="nav-link ${state.activeTab === 'kuis' ? 'active' : ''}" onclick="switchTab('kuis')"><i class="fa-solid fa-list-check me-2"></i>Ujian Kuis</button></li></ul>
+                <div id="tabContent"></div>`;
             loadTabContent();
         };
 
-        window.switchTab = (tabName) => { state.activeTab = tabName; renderCourseDetail(document.getElementById('main-content')); };
+        window.switchTab = (tabName) => { 
+            state.activeTab = tabName; 
+            if(window.quizTimer) clearInterval(window.quizTimer); // Matikan timer jika pindah tab
+            renderCourseDetail(document.getElementById('main-content')); 
+        };
 
         const loadTabContent = async () => {
             const content = document.getElementById('tabContent');
-            const certArea = document.getElementById('certificateContainer');
+            const { data: materialsData } = await window.supabaseClient.from('materials').select('*').eq('course_id', state.activeCourse.id).order('order_number', { ascending: true });
+            const { data: progressData } = await window.supabaseClient.from('progress').select('material_id').eq('student_id', state.user.id);
+            const { data: quizzesData } = await window.supabaseClient.from('quizzes').select('*').eq('course_id', state.activeCourse.id);
+            const { data: scoreData } = await window.supabaseClient.from('quiz_scores').select('score, passed').eq('student_id', state.user.id).eq('course_id', state.activeCourse.id).maybeSingle();
+            const { data: subData } = await window.supabaseClient.from('submissions').select('*').eq('course_id', state.activeCourse.id).eq('student_id', state.user.id);
 
-            try {
-                const { data: materialsData } = await window.supabaseClient.from('materials').select('*').eq('course_id', state.activeCourse.id).order('order_number', { ascending: true });
-                const { data: progressData } = await window.supabaseClient.from('progress').select('material_id').eq('student_id', state.user.id);
-                const { data: quizzesData } = await window.supabaseClient.from('quizzes').select('*').eq('course_id', state.activeCourse.id);
-                const { data: scoreData } = await window.supabaseClient.from('quiz_scores').select('score, passed').eq('student_id', state.user.id).eq('course_id', state.activeCourse.id).maybeSingle();
-                const { data: subData } = await window.supabaseClient.from('submissions').select('*').eq('course_id', state.activeCourse.id).eq('student_id', state.user.id);
+            const materials = materialsData || []; const progressMap = (progressData||[]).map(p => p.material_id);
+            const totalMateri = materials.length; const materiSelesai = progressMap.length;
+            const persentase = totalMateri === 0 ? 0 : Math.round((materiSelesai / totalMateri) * 100);
+            
+            // Hitung nilai akhir untuk sertifikat
+            let finalScore = scoreData ? scoreData.score : 0;
+            let predikat = "LULUS"; if (finalScore >= 93) predikat = "SANGAT BAIK"; else if (finalScore >= 80) predikat = "BAIK";
+            window.courseFinalScore = finalScore; window.coursePredikat = predikat;
 
-                const materials = materialsData || [];
-                const progressMap = progressData ? progressData.map(p => p.material_id) : [];
-                const bestScore = scoreData ? scoreData.score : null;
-                const isPassedQuiz = scoreData ? scoreData.passed : false;
-                const quizzes = quizzesData || [];
-                const mySubmissions = subData || [];
+            // Tombol Sertifikat Muncul Jika Lulus
+            if (persentase === 100 && totalMateri > 0 && (!quizzesData || quizzesData.length === 0 || scoreData?.passed)) {
+                document.getElementById('certificateContainer').innerHTML = `<button onclick="downloadCertificate()" class="btn btn-success px-4 py-2 rounded-pill shadow"><i class="fa-solid fa-award me-2"></i> Unduh Sertifikat</button>`;
+            } else { document.getElementById('certificateContainer').innerHTML = ''; }
+
+            if (state.activeTab === 'materi') {
+                let html = totalMateri > 0 ? `<div class="mb-4"><div class="progress shadow-sm"><div class="progress-bar ${persentase === 100 ? 'bg-success' : 'bg-primary'}" style="width: ${persentase}%"></div></div><small class="text-muted fw-bold">${persentase}% Selesai</small></div>` : '';
+                html += `<div class="d-flex flex-column gap-3">`;
+                materials.forEach((mat, idx) => {
+                    const isDone = progressMap.includes(mat.id);
+                    // RENDER RICH TEXT FORMAT (Menggunakan class "ql-editor" agar style list, bold dll langsung aktif)
+                    html += `<div class="card ${isDone ? 'border-success' : ''}"><div class="card-body"><div class="d-flex gap-3"><div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 50px;">${mat.order_number || idx + 1}</div><div class="flex-grow-1"><h5 class="fw-bold">${mat.title}</h5>
+                    
+                    <div class="ql-editor p-0 text-muted mt-3 mb-3">${mat.description}</div> 
+                    
+                    ${mat.content_url ? `<div class="p-3 bg-warning bg-opacity-10 border rounded"><p class="small fw-bold mb-2">Tugas: ${mat.content_url}</p><div class="d-flex gap-2"><input type="file" id="task_file_${mat.id}" class="form-control form-control-sm"><button onclick="submitTask('${mat.id}')" class="btn btn-warning btn-sm fw-bold"><i class="fa-solid fa-upload"></i> Upload</button></div></div>` : ''}</div><div>${isDone ? `<span class="btn btn-success disabled"><i class="fa-solid fa-check"></i></span>` : `<button onclick="markDone('${mat.id}')" class="btn btn-success">Selesai</button>`}</div></div></div></div>`;
+                });
+                content.innerHTML = html + `</div>`;
+            } 
+            else if (state.activeTab === 'kuis') {
+                if (persentase < 100) return content.innerHTML = `<div class="alert alert-warning text-center p-5"><h4 class="fw-bold">Terkunci</h4><p>Selesaikan seluruh materi terlebih dahulu.</p></div>`;
+                if (!quizzesData || quizzesData.length === 0) return content.innerHTML = `<div class="text-center text-muted p-5 bg-white border">Belum ada soal.</div>`;
                 
-                const totalMateri = materials.length; const materiSelesai = progressMap.length;
-                const persentase = totalMateri === 0 ? 0 : Math.round((materiSelesai / totalMateri) * 100);
-                
-                let quizScore = quizzes.length > 0 ? (bestScore || 0) : null;
-                let assignmentScores = mySubmissions.filter(s => s.score !== null).map(s => parseFloat(s.score));
-                let avgAssignmentScore = assignmentScores.length > 0 ? (assignmentScores.reduce((a,b) => a+b, 0) / assignmentScores.length) : null;
-
-                let finalScore = 0;
-                if (quizScore !== null && avgAssignmentScore !== null) { finalScore = (quizScore + avgAssignmentScore) / 2; } 
-                else if (quizScore !== null) { finalScore = quizScore; } 
-                else if (avgAssignmentScore !== null) { finalScore = avgAssignmentScore; } 
-                else { finalScore = 100; }
-                finalScore = Math.round(finalScore);
-
-                let predikat = "LULUS"; if (finalScore >= 93) { predikat = "SANGAT BAIK"; } else if (finalScore >= 80) { predikat = "BAIK"; }
-                window.courseFinalScore = finalScore; window.coursePredikat = predikat;
-                
-                // MUNCULKAN SERTIFIKAT HANYA JIKA KELAS BERBAYAR DAN LULUS
-                const isPaidCourse = parseInt(state.activeCourse.price) > 0;
-                const isLulus = (persentase === 100 && totalMateri > 0) && (quizzes.length === 0 || isPassedQuiz);
-
-                if (isLulus && isPaidCourse) {
-                    certArea.innerHTML = `<button onclick="downloadCertificate()" class="btn btn-success certificate-btn px-4 py-2 rounded-pill shadow"><i class="fa-solid fa-award me-2"></i> Unduh Sertifikat</button>`;
-                    if(!window.hasSeenCongrats) { Swal.fire('Luar Biasa!', `Anda lulus kelas berbayar ini dengan Predikat ${predikat} (${finalScore}/100)!`, 'success'); window.hasSeenCongrats = true; }
-                } else { certArea.innerHTML = ''; }
-
-                if (state.activeTab === 'materi') {
-                    let html = ``;
-                    if (totalMateri > 0) { html += `<div class="mb-4"><div class="d-flex justify-content-between align-items-center mb-1"><span class="small fw-bold text-muted">Progress Belajar Anda:</span><span class="small fw-bold text-primary">${persentase}% Selesai</span></div><div class="progress shadow-sm"><div class="progress-bar ${persentase === 100 ? 'bg-success' : 'bg-primary'}" style="width: ${persentase}%"></div></div></div>`; }
-                    html += `<div class="d-flex flex-column gap-3">`;
-                    if (materials.length === 0) { html += `<div class="text-center text-muted p-5 bg-white rounded border">Belum ada materi pembelajaran.</div>`; } 
-                    else {
-                        materials.forEach((mat, idx) => {
-                            const isDone = progressMap.includes(mat.id);
-                            let embedPreview = mat.embed_code ? `<div class="mt-4 ratio ratio-16x9 bg-dark rounded overflow-hidden shadow-sm">${mat.embed_code}</div>` : '';
-                            let taskHtml = '';
-                            if (mat.content_url) { 
-                                const existingSub = mySubmissions.find(s => s.material_id === mat.id);
-                                const subUrl = existingSub ? existingSub.file_url : '';
-                                const scoreBadge = (existingSub && existingSub.score !== null) ? `<span class="badge bg-success ms-2 rounded-pill">Nilai: ${existingSub.score}</span>` : (existingSub ? `<span class="badge bg-secondary ms-2 rounded-pill">Menunggu Penilaian</span>` : '');
-                                const btnText = existingSub ? '<i class="fa-solid fa-upload"></i> Upload Ulang Tugas' : '<i class="fa-solid fa-upload"></i> Upload Tugas'; const btnClass = existingSub ? 'btn-outline-warning' : 'btn-warning';
-
-                                taskHtml = `<div class="mt-3 p-3 bg-warning bg-opacity-10 border border-warning border-opacity-50 rounded-3"><p class="small fw-bold text-dark mb-1"><i class="fa-solid fa-file-signature text-warning me-1"></i> Instruksi Tugas:</p><p class="small text-muted mb-3">${mat.content_url}</p><div class="d-flex flex-column flex-sm-row gap-2"><input type="file" id="task_file_${mat.id}" class="form-control form-control-sm border-warning" accept="image/*,application/pdf" title="Pilih foto/PDF hasil kerjaan Anda"><button onclick="submitTask('${mat.id}')" class="btn ${btnClass} btn-sm fw-bold text-nowrap">${btnText}</button></div><small class="text-muted d-block mt-2">*Gunakan format foto (JPG/PNG) atau PDF. Maksimal 5MB.</small>${existingSub ? `<div class="mt-2 small text-success fw-semibold"><i class="fa-solid fa-check-circle"></i> Tugas berhasil diupload ke server. ${scoreBadge}<br><a href="${subUrl}" target="_blank" class="small text-primary mt-1 d-inline-block"><i class="fa-solid fa-up-right-from-square"></i> Lihat file tugas yang dikirim</a></div>` : ''}</div>`;
-                            }
-                            html += `<div class="card ${isDone ? 'border-success' : ''}"><div class="card-body"><div class="d-flex flex-column flex-md-row gap-3"><div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 50px; font-size: 1.2rem;">${mat.order_number || idx + 1}</div><div class="flex-grow-1"><h5 class="fw-bold mb-1">${mat.title}</h5><p class="text-muted small mb-0">${mat.description}</p>${taskHtml}</div><div class="d-flex gap-2 w-100 w-md-auto mt-3 mt-md-0 align-items-start justify-content-end">${isDone ? `<span class="btn btn-success disabled"><i class="fa-solid fa-check"></i> Selesai</span>` : `<button onclick="markDone('${mat.id}')" class="btn btn-success">Tandai Selesai</button>`}</div></div>${embedPreview}</div></div>`;
-                        });
-                    }
-                    html += `</div>`; content.innerHTML = html;
-                } 
-                else if (state.activeTab === 'kuis') {
-                    if (persentase < 100) { content.innerHTML = `<div class="alert alert-warning text-center p-5 border border-warning rounded-4 shadow-sm"><i class="fa-solid fa-lock fa-3x mb-3 text-warning opacity-75 d-block"></i><h4 class="fw-bold">Ujian Masih Terkunci</h4><p class="mb-0">Selesaikan seluruh materi terlebih dahulu.</p></div>`; return; }
-                    if (quizzes.length === 0) { content.innerHTML = `<div class="text-center text-muted p-5 bg-white rounded border">Belum ada soal kuis.</div>`; return; }
-
-                    let randomizedQuizzes = [...quizzes].sort(() => Math.random() - 0.5); let html = '';
-                    if (bestScore !== null) { html += `<div class="alert ${isPassedQuiz ? 'alert-success border-success' : 'alert-danger border-danger'} text-center mb-4 rounded-4 shadow-sm"><p class="mb-1 text-muted fw-semibold">Nilai Ujian Terbaik Anda</p><h2 class="fw-bold mb-2 ${isPassedQuiz ? 'text-success' : 'text-danger'}">${bestScore} <small style="font-size: 1rem;">/ 100</small></h2><p class="mb-0 small">${isPassedQuiz ? '<i class="fa-solid fa-circle-check"></i> Lulus KKM (80).' : '<i class="fa-solid fa-circle-xmark"></i> Nilai di bawah KKM. Coba lagi.'}</p></div>`; }
-                    html += `<form id="quizForm" class="d-flex flex-column gap-3">`;
-                    randomizedQuizzes.forEach((q, idx) => { html += `<div class="card shadow-sm border-0"><div class="card-body p-4"><h6 class="fw-bold mb-3 lh-base"><span class="text-primary me-1">${idx + 1}.</span> ${q.question}</h6><div class="form-check mb-2 bg-light p-3 rounded border"><input class="form-check-input ms-1 me-2" type="radio" name="q_${q.id}" id="a_${q.id}" value="a" required><label class="form-check-label w-100" style="cursor: pointer;" for="a_${q.id}">A. ${q.a}</label></div><div class="form-check mb-2 bg-light p-3 rounded border"><input class="form-check-input ms-1 me-2" type="radio" name="q_${q.id}" id="b_${q.id}" value="b" required><label class="form-check-label w-100" style="cursor: pointer;" for="b_${q.id}">B. ${q.b}</label></div><div class="form-check mb-2 bg-light p-3 rounded border"><input class="form-check-input ms-1 me-2" type="radio" name="q_${q.id}" id="c_${q.id}" value="c" required><label class="form-check-label w-100" style="cursor: pointer;" for="c_${q.id}">C. ${q.c}</label></div><div class="form-check mb-2 bg-light p-3 rounded border"><input class="form-check-input ms-1 me-2" type="radio" name="q_${q.id}" id="d_${q.id}" value="d" required><label class="form-check-label w-100" style="cursor: pointer;" for="d_${q.id}">D. ${q.d}</label></div></div></div>`; });
-                    html += `<button type="submit" id="btnSubmitQuiz" class="btn btn-primary btn-lg mt-3 w-100 py-3 rounded-3 shadow-sm"><i class="fa-solid fa-paper-plane me-2"></i> Kumpulkan Jawaban Ujian</button></form>`; content.innerHTML = html;
-
-                    document.getElementById('quizForm').addEventListener('submit', async (e) => {
-                        e.preventDefault(); Swal.fire({ title: 'Menghitung Nilai...', text: 'Mohon tunggu sebentar', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-                        let correctCount = 0; quizzes.forEach(q => { const selected = document.querySelector(`input[name="q_${q.id}"]:checked`); if(selected && selected.value === q.correct) correctCount++; });
-                        const finalScore = Math.round((correctCount / quizzes.length) * 100); const isPassed = finalScore >= 80;
-                        try {
-                            const { data: existingScore } = await window.supabaseClient.from('quiz_scores').select('id, score').eq('student_id', state.user.id).eq('course_id', state.activeCourse.id).maybeSingle();
-                            if (existingScore) { if (finalScore >= existingScore.score) { await window.supabaseClient.from('quiz_scores').update({ score: finalScore, passed: isPassed }).eq('id', existingScore.id); } } 
-                            else { await window.supabaseClient.from('quiz_scores').insert([{ student_id: state.user.id, course_id: state.activeCourse.id, score: finalScore, passed: isPassed }]); }
-                            let msg = isPassed ? `Lulus! Nilai: ${finalScore}.` : `Nilai Anda ${finalScore}. Belum mencapai KKM (80).`;
-                            Swal.fire({ icon: isPassed ? 'success' : 'error', title: `Skor: ${finalScore}`, text: msg, confirmButtonColor: '#4f46e5' }).then(() => loadTabContent());
-                        } catch (err) { Swal.fire('Error', 'Gagal menyimpan nilai kuis.', 'error'); }
-                    });
+                if (scoreData) {
+                    content.innerHTML = `<div class="alert ${scoreData.passed ? 'alert-success' : 'alert-danger'} text-center p-5 rounded-4 shadow-sm"><h2 class="fw-bold mb-2 ${scoreData.passed ? 'text-success' : 'text-danger'}">Skor Anda: ${scoreData.score}</h2><p>${scoreData.passed ? 'Selamat Anda Lulus!' : 'Nilai di bawah KKM.'}</p></div>`;
+                    return;
                 }
-            } catch(error) { content.innerHTML = `<div class="alert alert-danger">Terjadi kesalahan.</div>`; }
+
+                // ==========================================
+                // SISTEM KUIS MODERN (Pagination & Timer)
+                // ==========================================
+                window.quizQuestions = [...quizzesData].sort(() => Math.random() - 0.5); // Acak Soal
+                window.currentQIndex = 0;
+                window.studentAnswers = {}; // Menyimpan memori jawaban sementara
+                window.timeLeft = (state.activeCourse.quiz_duration || 15) * 60; // Setel waktu timer (dalam detik)
+
+                content.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold mb-0">Ujian Kelas</h4>
+                        <div class="badge bg-danger fs-5 px-4 py-2 shadow-sm"><i class="fa-regular fa-clock me-2"></i> <span id="timerDisplay">--:--</span></div>
+                    </div>
+                    <div id="quizContainer"></div>
+                `;
+
+                // Fungsi Menampilkan Satu Soal
+                window.renderQuizQ = () => {
+                    const q = window.quizQuestions[window.currentQIndex];
+                    const ans = window.studentAnswers[q.id] || ''; // Cek memori jawaban
+                    let qHtml = `
+                        <div class="card shadow-sm border-0 mb-4">
+                            <div class="card-header bg-white py-3 border-bottom"><h6 class="fw-bold text-muted mb-0">Soal ${window.currentQIndex + 1} dari ${window.quizQuestions.length}</h6></div>
+                            <div class="card-body p-4">
+                                <h5 class="mb-4" style="line-height:1.6;">${q.question}</h5>
+                                ${['a','b','c','d'].map(opt => `
+                                    <label class="list-group-item list-group-item-action mb-2 border rounded p-3 ${ans===opt ? 'bg-primary bg-opacity-10 border-primary fw-bold' : 'bg-light'}" style="cursor:pointer;" onclick="document.getElementById('opt_${q.id}_${opt}').click()">
+                                        <div class="d-flex align-items-center">
+                                            <input class="form-check-input me-3" type="radio" name="q_${q.id}" id="opt_${q.id}_${opt}" value="${opt}" ${ans===opt?'checked':''} onchange="window.saveAns('${q.id}', '${opt}')">
+                                            <span><strong>${opt.toUpperCase()}.</strong> ${q[opt]}</span>
+                                        </div>
+                                    </label>
+                                `).join('')}
+                            </div>
+                            <div class="card-footer bg-white p-3 d-flex justify-content-between">
+                                <button class="btn btn-outline-secondary px-4" onclick="window.prevQ()" ${window.currentQIndex === 0 ? 'disabled' : ''}><i class="fa-solid fa-arrow-left me-2"></i> Sebelumnya</button>
+                                ${window.currentQIndex === window.quizQuestions.length - 1 ?
+                                    `<button class="btn btn-success px-4 fw-bold shadow-sm" onclick="window.confirmSubmitQuiz()">Kumpulkan Ujian <i class="fa-solid fa-check ms-2"></i></button>` :
+                                    `<button class="btn btn-primary px-4" onclick="window.nextQ()">Selanjutnya <i class="fa-solid fa-arrow-right ms-2"></i></button>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('quizContainer').innerHTML = qHtml;
+                };
+
+                // Navigasi & Penyimpanan Memori Jawaban
+                window.saveAns = (qId, option) => { window.studentAnswers[qId] = option; window.renderQuizQ(); };
+                window.nextQ = () => { if(window.currentQIndex < window.quizQuestions.length - 1) { window.currentQIndex++; window.renderQuizQ(); } };
+                window.prevQ = () => { if(window.currentQIndex > 0) { window.currentQIndex--; window.renderQuizQ(); } };
+
+                // Proses Mengumpulkan Kuis
+                window.confirmSubmitQuiz = () => {
+                    const answered = Object.keys(window.studentAnswers).length;
+                    if(answered < window.quizQuestions.length) {
+                        Swal.fire({ title: 'Yakin kumpulkan?', text: `Masih ada ${window.quizQuestions.length - answered} soal yang belum dijawab!`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Kumpulkan', cancelButtonText: 'Cek Lagi' }).then(r => { if(r.isConfirmed) window.doSubmitQuiz(); });
+                    } else { window.doSubmitQuiz(); }
+                };
+
+                window.doSubmitQuiz = async () => {
+                    if(window.quizTimer) clearInterval(window.quizTimer); // Matikan Timer
+                    Swal.fire({ title: 'Menghitung Nilai...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                    
+                    let correctCount = 0;
+                    window.quizQuestions.forEach(q => { if(window.studentAnswers[q.id] === q.correct) correctCount++; });
+                    const finalScore = Math.round((correctCount / window.quizQuestions.length) * 100);
+                    const isPassed = finalScore >= 80;
+                    
+                    try {
+                        await window.supabaseClient.from('quiz_scores').insert([{ student_id: state.user.id, course_id: state.activeCourse.id, score: finalScore, passed: isPassed }]);
+                        Swal.fire({ icon: isPassed ? 'success' : 'error', title: `Skor Anda: ${finalScore}`, text: isPassed ? 'Luar Biasa, Anda LULUS!' : 'Belum mencapai KKM (80).', confirmButtonColor: '#4f46e5' }).then(() => { state.activeTab = 'materi'; loadTabContent(); });
+                    } catch (err) { Swal.fire('Error', 'Gagal menyimpan nilai.', 'error'); }
+                };
+
+                // Mulai Render Soal Pertama
+                window.renderQuizQ();
+
+                // Jalankan Timer
+                if(window.quizTimer) clearInterval(window.quizTimer);
+                window.quizTimer = setInterval(() => {
+                    window.timeLeft--;
+                    let m = Math.floor(window.timeLeft / 60);
+                    let s = window.timeLeft % 60;
+                    const td = document.getElementById('timerDisplay');
+                    if(td) {
+                        td.innerText = `${m}:${s<10?'0':''}${s}`;
+                        if(window.timeLeft <= 60) td.parentElement.classList.replace('bg-danger', 'bg-warning'); // Berubah warna jika sisa 1 menit
+                    }
+                    // Jika Waktu Habis -> Submit Paksa
+                    if(window.timeLeft <= 0) {
+                        clearInterval(window.quizTimer);
+                        Swal.fire('Waktu Habis!', 'Ujian otomatis dikumpulkan oleh sistem.', 'warning').then(() => window.doSubmitQuiz());
+                    }
+                }, 1000);
+            }
         };
 
-        window.markDone = async (materialId) => {
-            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-            try {
-                const { data: existing } = await window.supabaseClient.from('progress').select('id').eq('student_id', state.user.id).eq('material_id', materialId).maybeSingle();
-                if (!existing) { await window.supabaseClient.from('progress').insert([{ student_id: state.user.id, material_id: materialId, is_completed: true }]); }
-                showToast("Materi diselesaikan!"); renderCourseDetail(document.getElementById('main-content'));
-            } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
-        };
-
+        window.markDone = async (materialId) => { await window.supabaseClient.from('progress').insert([{ student_id: state.user.id, material_id: materialId, is_completed: true }]); loadTabContent(); };
         window.submitTask = async (materialId) => {
             const fileInput = document.getElementById(`task_file_${materialId}`);
-            if (!fileInput.files || fileInput.files.length === 0) return Swal.fire('Oops!', 'Pilih file.', 'warning');
+            if (!fileInput.files.length) return Swal.fire('Oops!', 'Pilih file.', 'warning');
             const file = fileInput.files[0]; if (file.size > 5 * 1024 * 1024) return Swal.fire('Oops!', 'Maksimal 5MB.', 'warning');
 
-            Swal.fire({ title: 'Mengupload Tugas...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+            Swal.fire({ title: 'Upload...', didOpen: () => { Swal.showLoading(); }});
             try {
-                const fileExt = file.name.split('.').pop(); const fileName = `${state.user.id}_${materialId}_${Date.now()}.${fileExt}`;
-                const { error: uploadError } = await window.supabaseClient.storage.from('tugas_siswa').upload(fileName, file);
-                if (uploadError) throw uploadError;
-                
+                const fileName = `${state.user.id}_${materialId}_${Date.now()}.${file.name.split('.').pop()}`;
+                await window.supabaseClient.storage.from('tugas_siswa').upload(fileName, file);
                 const { data: urlData } = window.supabaseClient.storage.from('tugas_siswa').getPublicUrl(fileName);
-                const fileUrl = urlData.publicUrl;
-
+                
                 const { data: existingSub } = await window.supabaseClient.from('submissions').select('id').eq('student_id', state.user.id).eq('material_id', materialId).maybeSingle();
-                if (existingSub) {
-                    const { error: updateErr } = await window.supabaseClient.from('submissions').update({ file_url: fileUrl, score: null }).eq('id', existingSub.id);
-                    if (updateErr) throw updateErr;
-                } else {
-                    // ID Supabase akan auto-generate (Pastikan kolom ID di tabel ini kosongkan nilai defaultnya atau gunakan uuid_generate_v4)
-                    const { error: insertErr } = await window.supabaseClient.from('submissions').insert([{ student_id: state.user.id, course_id: state.activeCourse.id, material_id: materialId, file_url: fileUrl }]);
-                    if (insertErr) throw insertErr;
-                }
+                if (existingSub) await window.supabaseClient.from('submissions').update({ file_url: urlData.publicUrl, score: null }).eq('id', existingSub.id);
+                else await window.supabaseClient.from('submissions').insert([{ student_id: state.user.id, course_id: state.activeCourse.id, material_id: materialId, file_url: urlData.publicUrl }]);
+                
                 showToast('Tugas diupload!'); loadTabContent();
             } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
         };
 
-       // ==========================================
+        // ==========================================
         // CETAK PDF SERTIFIKAT FULL CENTERED + LOGO, TANGGAL & QR CODE
         // ==========================================
         window.downloadCertificate = async () => {
-            Swal.fire({ title: 'Membuat Sertifikat...', text: 'Mempersiapkan desain resolusi tinggi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-            
+            Swal.fire({ title: 'Membuat Sertifikat...', text: 'Mempersiapkan desain...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
             try {
-                // Fungsi untuk memuat gambar dari URL agar masuk ke PDF
-                const loadImage = (url) => {
-                    return new Promise((resolve, reject) => {
-                        const img = new Image();
-                        img.crossOrigin = 'Anonymous'; 
-                        img.onload = () => resolve(img);
-                        img.onerror = () => reject(new Error('Gagal memuat: ' + url));
-                        img.src = url;
-                    });
-                };
-
-                // 1. Siapkan Nomor Sertifikat & Tanggal Hari Ini (Format Indonesia)
+                const loadImage = (url) => new Promise((res, rej) => { const img = new Image(); img.crossOrigin = 'Anonymous'; img.onload = () => res(img); img.onerror = () => rej(new Error('Gagal: ' + url)); img.src = url; });
                 const shortId = state.user.id ? state.user.id.substring(0, 8).toUpperCase() : '001';
                 const certNumber = `CERT-EDU-${shortId}`;
-                const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); // Hasil: "1 Maret 2026"
-                
-                // Siapkan Data QR Code (Ditambah Tanggal)
-                const qrText = `Sertifikat Valid EduPro\nNomor: ${certNumber}\nTanggal: ${today}\nNama: ${state.user.full_name}\nLulus Kelas: ${state.activeCourse.title}\nPredikat: ${window.coursePredikat}\nSkor: ${window.courseFinalScore}`;
+                const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); 
+                const qrText = `Validasi EduPro\nNomor: ${certNumber}\nTanggal: ${today}\nNama: ${state.user.full_name}\nKelas: ${state.activeCourse.title}\nSkor: ${window.courseFinalScore}`;
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrText)}`;
-                
-                // Link Background & Logo Anda
-                const bgUrl = 'https://i.ibb.co.com/DDSSRmff/background-sertifikat1.png';
-                const logoUrl = 'https://i.ibb.co.com/fYDFWPyM/logo-edu-Pro.png';
-
-                // 2. Download Semua Gambar Secara Bersamaan
-                const [bgImg, qrImg, logoImg] = await Promise.all([
-                    loadImage(bgUrl),
-                    loadImage(qrUrl),
-                    loadImage(logoUrl)
-                ]);
-
-                const { jsPDF } = window.jspdf; 
-                const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); // Ukuran A4 Landscape
-
-                // 3. Pasang Background (Penuhi Kertas)
+                const [bgImg, qrImg, logoImg] = await Promise.all([ loadImage('https://i.ibb.co.com/DDSSRmff/background-sertifikat1.png'), loadImage(qrUrl), loadImage('https://i.ibb.co.com/fYDFWPyM/logo-edu-Pro.png') ]);
+                const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); 
                 doc.addImage(bgImg, 'PNG', 0, 0, 297, 210);
-
-                // =======================================================
-                // TATA LETAK ELEMEN (Rata Tengah pada sumbu X = 148.5 mm)
-                // =======================================================
-
-                // 4. Logo EduPro
-                // Format: doc.addImage(gambar, tipe, posisi_X, posisi_Y, lebar, tinggi)
-                // Jika ingin mengubah ukuran, pastikan posisi_X = 148.5 - (lebar / 2) agar selalu di tengah.
                 
-                const logoLebar = 46; // Sesuaikan angka ini jika kurang lebar
-                const logoTinggi = 36; // Sesuaikan angka ini jika kurang tinggi
-                const posisiX = 148.5 - (logoLebar / 2); // Rumus otomatis agar logo selalu tepat di tengah
-                
+                const logoLebar = 46; const logoTinggi = 16; const posisiX = 148.5 - (logoLebar / 2);
                 doc.addImage(logoImg, 'PNG', posisiX, 18, logoLebar, logoTinggi);
 
-                // 5. Judul Utama
-                doc.setFont('helvetica', 'bold'); 
-                doc.setFontSize(28); 
-                doc.setTextColor(15, 23, 42);
-                doc.text("SERTIFIKAT KELULUSAN", 148.5, 60, { align: 'center' });
-
-                // 6. Nomor Sertifikat
-                doc.setFont('helvetica', 'normal'); 
-                doc.setFontSize(10); 
-                doc.setTextColor(100, 116, 139);
-                doc.text(`Nomor Dokumen: ${certNumber}`, 148.5, 67, { align: 'center' });
-
-                // 7. Teks Pengantar
-                doc.setFontSize(13); 
-                doc.setTextColor(71, 85, 105);
-                doc.text("Dengan bangga dianugerahkan kepada:", 148.5, 87, { align: 'center' });
-
-                // 8. Nama Siswa
-                doc.setFont('helvetica', 'bold'); 
-                doc.setFontSize(34); 
-                doc.setTextColor(15, 23, 42); 
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(28); doc.setTextColor(15, 23, 42);
+                doc.text("SERTIFIKAT KELULUSAN", 148.5, 65, { align: 'center' });
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(100, 116, 139);
+                doc.text(`Nomor Dokumen: ${certNumber}`, 148.5, 72, { align: 'center' });
+                doc.setFontSize(13); doc.setTextColor(71, 85, 105); doc.text("Dengan bangga dianugerahkan kepada:", 148.5, 87, { align: 'center' });
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(34); doc.setTextColor(15, 23, 42); 
                 doc.text(state.user.full_name, 148.5, 101, { align: 'center' }); 
-                
-                // 9. Teks Kelulusan
-                doc.setFontSize(13); 
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(71, 85, 105);
-                doc.text("Atas dedikasi dan keberhasilannya dalam menyelesaikan program kelas premium:", 148.5, 115, { align: 'center' });
-                
-                // 10. Nama Kelas
-                doc.setFontSize(24); 
-                doc.setFont('helvetica', 'bold'); 
-                doc.setTextColor(79, 70, 229); 
+                doc.setFontSize(13); doc.setFont('helvetica', 'normal'); doc.setTextColor(71, 85, 105);
+                doc.text("Atas keberhasilannya menyelesaikan program kelas premium:", 148.5, 115, { align: 'center' });
+                doc.setFontSize(24); doc.setFont('helvetica', 'bold'); doc.setTextColor(79, 70, 229); 
                 doc.text(state.activeCourse.title, 148.5, 127, { align: 'center' });
-                
-                // 11. Predikat & Skor
-                doc.setFontSize(13); 
-                doc.setFont('helvetica', 'italic'); 
-                doc.setTextColor(15, 23, 42);
+                doc.setFontSize(13); doc.setFont('helvetica', 'italic'); doc.setTextColor(15, 23, 42);
                 doc.text(`Predikat: ${window.coursePredikat}   |   Skor Akhir: ${window.courseFinalScore}`, 148.5, 137, { align: 'center' });
-
-                // 12. TANGGAL SERTIFIKAT (Baru Ditambahkan)
-                doc.setFontSize(12); 
-                doc.setFont('helvetica', 'normal'); 
-                doc.setTextColor(71, 85, 105);
+                doc.setFontSize(12); doc.setFont('helvetica', 'normal'); doc.setTextColor(71, 85, 105);
                 doc.text(`Diberikan pada tanggal: ${today}`, 148.5, 145, { align: 'center' });
-
-                // 13. QR Code Validasi 
                 doc.addImage(qrImg, 'PNG', 137.5, 149, 22, 22);
-                
-                // 14. Nama Direktur
-                doc.setFontSize(14); 
-                doc.setFont('helvetica', 'bold'); 
-                doc.setTextColor(15, 23, 42);
+                doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(15, 23, 42);
                 doc.text("Kartia Amriani", 148.5, 178, { align: 'center' }); 
-                
-                // Garis Bawah Tanda Tangan
-                doc.setDrawColor(15, 23, 42);
-                doc.setLineWidth(0.5);
-                doc.line(125, 180, 172, 180); 
-                
-                // 15. Jabatan
-                doc.setFontSize(11); 
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(71, 85, 105);
+                doc.setDrawColor(15, 23, 42); doc.setLineWidth(0.5); doc.line(125, 180, 172, 180); 
+                doc.setFontSize(11); doc.setFont('helvetica', 'normal'); doc.setTextColor(71, 85, 105);
                 doc.text("Direktur Utama EduPro", 148.5, 186, { align: 'center' });
-
-                // 16. Simpan File PDF
-                doc.save(`Sertifikat_${state.activeCourse.title.replace(/\s+/g, '_')}.pdf`);
-                Swal.fire('Berhasil!', 'Sertifikat resmi berhasil dicetak.', 'success');
-                
-            } catch(e) { 
-                console.error(e);
-                Swal.fire('Gagal', 'Terjadi kesalahan saat memuat desain. Pastikan internet stabil.', 'error'); 
-            }
+                doc.save(`Sertifikat_${state.activeCourse.title.replace(/\s+/g, '_')}.pdf`); Swal.fire('Berhasil!', 'Sertifikat diunduh.', 'success');
+            } catch(e) { Swal.fire('Gagal', 'Pastikan internet stabil.', 'error'); }
         };
 
         renderApp();
     </script>
 </body>
 </html>
-
-
-
-
-
