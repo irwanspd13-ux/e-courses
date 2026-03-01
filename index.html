@@ -703,13 +703,17 @@
         // FUNGSI MENDAFTAR KELAS & PEMBAYARAN
         // =====================================
         window.enrollCourse = async (courseId, price) => {
-            const isFree = parseInt(price) === 0;
+            // Memastikan format harga dibersihkan menjadi angka murni
+            const cleanPrice = String(price).replace(/[^0-9]/g, '');
+            const numPrice = parseInt(cleanPrice) || 0;
+            
+            const isFree = numPrice === 0;
             const statusTransaksi = isFree ? 'approved' : 'pending';
             const confirmText = isFree ? 'Ya, ikuti kelas ini!' : 'Ya, daftar kelas!';
 
             Swal.fire({
                 title: isFree ? 'Ikuti Kelas Ini?' : 'Daftar Kelas Berbayar?',
-                text: isFree ? "Kelas ini gratis, Anda bisa langsung mulai belajar." : `Anda akan mendaftar kelas ini dengan biaya Rp ${parseInt(price).toLocaleString('id-ID')}.`,
+                text: isFree ? "Kelas ini gratis, Anda bisa langsung mulai belajar." : `Anda akan mendaftar kelas ini dengan biaya Rp ${numPrice.toLocaleString('id-ID')}.`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#4f46e5',
@@ -734,13 +738,13 @@
                             id: 'TRX-' + Date.now(),
                             student_id: state.user.id,
                             course_id: courseId,
-                            amount: parseInt(price),
+                            amount: numPrice,
                             status: statusTransaksi
                         }]);
 
                         if (error) throw error;
 
-                        // 3. Tampilkan Pesan Sukses atau Barcode Pembayaran
+                        // 3. Tampilkan Pesan Sukses ATAU Barcode Pembayaran
                         if (isFree) {
                             Swal.fire('Berhasil!', 'Anda telah terdaftar dan bisa langsung belajar.', 'success').then(() => renderDashboard());
                         } else {
@@ -749,14 +753,14 @@
                                 title: 'Selesaikan Pembayaran',
                                 html: `
                                     <div class="text-center mt-2">
-                                        <p class="mb-3 text-dark">Silakan scan QR Code (QRIS) di bawah ini dengan aplikasi M-Banking atau e-Wallet Anda untuk membayar sebesar:<br><strong class="fs-4 text-primary">Rp ${parseInt(price).toLocaleString('id-ID')}</strong></p>
+                                        <p class="mb-3 text-dark">Silakan scan QR Code (QRIS) di bawah ini untuk membayar sebesar:<br><strong class="fs-4 text-primary">Rp ${numPrice.toLocaleString('id-ID')}</strong></p>
                                         
                                         <div class="p-3 bg-white border rounded shadow-sm d-inline-block mb-3">
-                                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Pembayaran+EduPro+${courseId}+Rp${price}" alt="QRIS Barcode" class="img-fluid" style="width: 200px; height: 200px;">
+                                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Pembayaran_EduPro_Rp${numPrice}" alt="QRIS Barcode" class="img-fluid" style="width: 200px; height: 200px;">
                                         </div>
                                         
                                         <div class="alert alert-warning small text-start mb-0">
-                                            <i class="fa-solid fa-circle-info me-1"></i> <strong>Penting:</strong> Setelah melakukan pembayaran, pendaftaran Anda akan bersatus <b>PENDING</b>. Hubungi Guru/Admin untuk meminta konfirmasi (Approve) agar akses kelas terbuka.
+                                            <i class="fa-solid fa-circle-info me-1"></i> <strong>Penting:</strong> Setelah bayar, status pendaftaran Anda <b>PENDING</b>. Hubungi Guru/Admin untuk konfirmasi (Approve).
                                         </div>
                                     </div>
                                 `,
@@ -769,6 +773,7 @@
                             });
                         }
                     } catch (err) {
+                        console.error(err);
                         Swal.fire('Gagal', err.message, 'error');
                     }
                 }
@@ -779,6 +784,7 @@
     </script>
 </body>
 </html>
+
 
 
 
