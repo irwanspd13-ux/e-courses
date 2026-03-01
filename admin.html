@@ -480,8 +480,11 @@
                 content.innerHTML = html;
 
             } else if (state.activeTab === 'kuis') {
-                const resQuiz = await apiCall('getQuiz', { course_id: state.activeCourse.id, role: 'teacher' });
-                const quizzes = resQuiz.data || [];
+                const { data: quizzesData } = await window.supabaseClient
+                    .from('quizzes')
+                    .select('*')
+                    .eq('course_id', state.activeCourse.id);
+                const quizzes = quizzesData || [];
 
                 let html = `
                     <div class="card p-4 mb-4 border border-info border-opacity-25 bg-white">
@@ -520,12 +523,20 @@
                 html += `</div>`;
                 content.innerHTML = html;
 
-                document.getElementById('formAddQuiz').addEventListener('submit', async (e) => {
+              document.getElementById('formAddQuiz').addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const btn = document.getElementById('btnQuiz'); btn.disabled = true; btn.innerHTML = 'Menyimpan...';
                     const payload = { course_id: state.activeCourse.id, question: document.getElementById('qQuestion').value, a: document.getElementById('qA').value, b: document.getElementById('qB').value, c: document.getElementById('qC').value, d: document.getElementById('qD').value, correct: document.getElementById('qCorrect').value };
-                    const res = await apiCall('addQuizQuestion', payload);
-                    if (res.success) { showToast(res.message); loadTabContent(); }
+                    
+                    try {
+                        const { error } = await window.supabaseClient.from('quizzes').insert([payload]);
+                        if (error) throw error;
+                        showToast("Soal berhasil ditambahkan!"); 
+                        loadTabContent();
+                    } catch (err) {
+                        Swal.fire('Gagal', err.message, 'error');
+                        btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-plus me-2"></i> Tambahkan Soal';
+                    }
                 });
 
             } else if (state.activeTab === 'progress') {
@@ -612,7 +623,8 @@
                 } 
             }); 
         };
-        window.deleteQuiz = (id) => { Swal.fire({ title: 'Hapus Soal?', text: "Soal akan dihapus permanen.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Hapus' }).then(async (result) => { if (result.isConfirmed) { Swal.showLoading(); const res = await apiCall('deleteQuizQuestion', { id }); if (res.success) { showToast(res.message); loadTabContent(); } } }); };
+        
+        window.deleteQuiz = (id) => { Swal.fire({ title: 'Hapus Soal?', text: "Soal akan dihapus permanen.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Hapus' }).then(async (result) => { if (result.isConfirmed) { Swal.showLoading(); const { error } = await window.supabaseClient.from('quizzes').delete().eq('id', id); if (!error) { showToast("Soal dihapus!"); loadTabContent(); } else { Swal.fire('Error', error.message, 'error'); } } }); };
 
         window.exportToPDF = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF();
@@ -627,6 +639,7 @@
 </body>
 
 </html>
+
 
 
 
