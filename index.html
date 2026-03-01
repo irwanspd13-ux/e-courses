@@ -322,12 +322,12 @@
             
            const listContainer = document.getElementById('courseList');
             
-            // Ambil kelas dari Supabase, dan transaksi masih dari GAS sementara waktu
+            // Ambil kelas dan transaksi 100% dari Supabase
             const { data: courses } = await window.supabaseClient.from('courses').select('*').eq('status', 'active').order('created_at', { ascending: false });
-            const resTrx = await apiCall('getTransactions', { student_id: state.user.id });
+            const { data: trxData } = await window.supabaseClient.from('transactions').select('*').eq('student_id', state.user.id);
             
             state.courses = courses || [];
-            const transactions = resTrx.success ? resTrx.data : [];
+            const transactions = trxData || [];
 
             if (state.courses.length === 0) return listContainer.innerHTML = `<div class="col-12 text-center text-muted p-5 bg-white rounded">Belum ada kelas tersedia.</div>`;
 
@@ -417,7 +417,7 @@
 
         window.switchTab = (tabName) => { state.activeTab = tabName; renderCourseDetail(document.getElementById('main-content')); };
 
-const loadTabContent = async () => {
+        const loadTabContent = async () => {
             const content = document.getElementById('tabContent');
             const certArea = document.getElementById('certificateContainer');
 
@@ -703,6 +703,7 @@ const loadTabContent = async () => {
     </script>
 </body>
 </html>
+
 
 
 
