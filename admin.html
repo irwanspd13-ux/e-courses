@@ -35,6 +35,8 @@
     </style>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
 </head>
 <body>
@@ -42,28 +44,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    
     <script src="app.js"></script>
 
     <script>
-        // PENTING: URL ini masih dipakai khusus untuk mencetak PDF laporan akhir sementara waktu
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbx3ikQ_nswP0TJ867YAColMB68SY-5PS3Py_jzCgL99wP7OzT8FtupvMV_FTchCQI02nQ/exec";
-
         let state = {
             user: JSON.parse(localStorage.getItem('edupro_admin')) || null,
             currentView: localStorage.getItem('edupro_admin') ? 'dashboard' : 'login',
             activeCourse: null,
             activeTab: 'materi',
             courses: []
-        };
-
-        const apiCall = async (action, payload = {}) => {
-            try {
-                const response = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, payload }) });
-                return await response.json();
-            } catch (error) { return { success: false, error: "Koneksi ke server gagal." }; }
         };
 
         const showToast = (message, icon = 'success') => Swal.fire({ toast: true, position: 'top-end', icon, title: message, showConfirmButton: false, timer: 3000 });
@@ -101,214 +90,118 @@
             renderApp();
         };
 
-        window.openCourseGlobal = (id) => {
-            const course = state.courses.find(c => c.id === id);
-            if (course) navigate('courseDetail', course);
-        };
+        window.openCourseGlobal = (id) => { const course = state.courses.find(c => c.id === id); if (course) navigate('courseDetail', course); };
 
-        // ==========================================
-        // RENDER LOGIN (SUPABASE)
-        // ==========================================
         const renderLogin = (container) => {
             container.innerHTML = `
-                <div class="row justify-content-center align-items-center h-100 mt-5">
-                    <div class="col-12 col-md-6 col-lg-5">
-                        <div class="card p-4 p-md-5 text-center">
+                <div class="row justify-content-center align-items-center h-100 mt-5"><div class="col-12 col-md-6 col-lg-5"><div class="card p-4 p-md-5 text-center">
                             <h2 class="fw-bold mb-1" style="color: var(--primary-color);">Admin Panel</h2><p class="text-muted mb-4">Akses khusus Guru / Pengelola</p>
-                            <form id="loginForm">
-                                <div class="mb-4 text-start"><label class="form-label fw-semibold">NIP / ID Guru</label><input type="text" id="nisn" class="form-control" placeholder="Masukkan ID Guru..." required></div>
-                                <div class="mb-4 text-start"><label class="form-label fw-semibold">Password</label><input type="password" id="password" class="form-control" placeholder="Masukkan Password (jika ada)..."></div>
-                                <button type="submit" class="btn btn-primary w-100" id="btnLogin"><i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Masuk Dashboard</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>`;
+                            <form id="loginForm"><div class="mb-4 text-start"><label class="form-label fw-semibold">NIP / ID Guru</label><input type="text" id="nisn" class="form-control" placeholder="Masukkan ID Guru..." required></div><div class="mb-4 text-start"><label class="form-label fw-semibold">Password</label><input type="password" id="password" class="form-control" placeholder="Masukkan Password (jika ada)..."></div><button type="submit" class="btn btn-primary w-100" id="btnLogin"><i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Masuk Dashboard</button></form>
+                </div></div></div>`;
 
             document.getElementById('loginForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btn = document.getElementById('btnLogin'); btn.innerHTML = 'Memeriksa...'; btn.disabled = true;
-                const inputNisn = document.getElementById('nisn').value;
-                const inputPassword = document.getElementById('password').value;
-
+                e.preventDefault(); const btn = document.getElementById('btnLogin'); btn.innerHTML = 'Memeriksa...'; btn.disabled = true;
+                const inputNisn = document.getElementById('nisn').value; const inputPassword = document.getElementById('password').value;
                 try {
                     const { data: user, error } = await window.supabaseClient.from('users').select('*').eq('nisn', inputNisn).maybeSingle();
-                    if (error) throw error;
-
-                    if (!user) { Swal.fire('Gagal', 'NIP / ID Guru tidak terdaftar.', 'error'); } 
+                    if (!user) { Swal.fire('Gagal', 'NIP tidak terdaftar.', 'error'); } 
                     else if (user.password !== inputPassword) { Swal.fire('Gagal', 'Password salah.', 'error'); } 
-                    else if (user.role !== 'teacher' && user.role !== 'admin') { Swal.fire('Akses Ditolak', 'Halaman ini khusus Guru.', 'warning'); } 
-                    else {
-                        state.user = user; 
-                        localStorage.setItem('edupro_admin', JSON.stringify(user));
-                        showToast(`Selamat datang, ${user.full_name}!`); 
-                        navigate('dashboard');
-                    }
-                } catch (err) { Swal.fire('Error', 'Terjadi kesalahan sistem saat login.', 'error'); } 
+                    else if (user.role !== 'teacher' && user.role !== 'admin') { Swal.fire('Akses Ditolak', 'Khusus Guru.', 'warning'); } 
+                    else { state.user = user; localStorage.setItem('edupro_admin', JSON.stringify(user)); showToast(`Selamat datang, ${user.full_name}!`); navigate('dashboard'); }
+                } catch (err) { Swal.fire('Error', 'Terjadi kesalahan sistem.', 'error'); } 
                 finally { btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Masuk Dashboard'; btn.disabled = false; }
             });
         };
 
-        const handleLogout = () => {
-            Swal.fire({ title: 'Keluar?', text: "Sesi admin akan diakhiri.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Keluar' }).then((res) => {
-                if (res.isConfirmed) { localStorage.removeItem('edupro_admin'); state.user = null; navigate('login'); }
-            });
-        };
+        const handleLogout = () => { Swal.fire({ title: 'Keluar?', text: "Sesi admin diakhiri.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Keluar' }).then((res) => { if (res.isConfirmed) { localStorage.removeItem('edupro_admin'); state.user = null; navigate('login'); } }); };
 
-        // ==========================================
-        // DASHBOARD GURU & KELOLA KELAS (SUPABASE)
-        // ==========================================
         const renderTeacherDashboard = async (container) => {
             container.innerHTML = `
                 <div class="row g-4 mb-4">
-                    <div class="col-12 col-lg-6"><div class="card h-100 p-4"><h5 class="fw-bold mb-3"><i class="fa-solid fa-folder-plus text-primary me-2"></i> Buat Kelas Baru</h5>
-                        <form id="formAddCourse"><div class="mb-3"><input type="text" id="courseTitle" class="form-control" placeholder="Judul Kelas" required></div><div class="mb-3"><textarea id="courseDesc" class="form-control" placeholder="Deskripsi Singkat..." rows="2" required></textarea></div><div class="mb-3"><input type="number" id="coursePrice" class="form-control" placeholder="Harga Kelas (Biarkan 0 jika Gratis)"></div><button type="submit" class="btn btn-primary w-100" id="btnCourse">Buat Kelas</button></form></div>
-                    </div>
-                    <div class="col-12 col-lg-6"><div class="card h-100 p-4 bg-primary bg-opacity-10"><h5 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-user-plus me-2"></i> Daftarkan Siswa (Manual)</h5>
-                        <form id="formAddStudent"><div class="mb-3"><input type="text" id="studentName" class="form-control" placeholder="Nama Lengkap Siswa" required></div><div class="mb-3"><input type="text" id="studentNisn" class="form-control" placeholder="NISN (Username)" required></div><button type="submit" class="btn btn-primary w-100" id="btnStudent">Tambahkan Siswa</button></form></div>
-                    </div>
+                    <div class="col-12 col-lg-6"><div class="card h-100 p-4"><h5 class="fw-bold mb-3"><i class="fa-solid fa-folder-plus text-primary me-2"></i> Buat Kelas Baru</h5><form id="formAddCourse"><div class="mb-3"><input type="text" id="courseTitle" class="form-control" placeholder="Judul Kelas" required></div><div class="mb-3"><textarea id="courseDesc" class="form-control" placeholder="Deskripsi Singkat..." rows="2" required></textarea></div><div class="mb-3"><input type="number" id="coursePrice" class="form-control" placeholder="Harga Kelas (Biarkan 0 jika Gratis)"></div><button type="submit" class="btn btn-primary w-100" id="btnCourse">Buat Kelas</button></form></div></div>
+                    <div class="col-12 col-lg-6"><div class="card h-100 p-4 bg-primary bg-opacity-10"><h5 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-user-plus me-2"></i> Daftarkan Siswa Manual</h5><form id="formAddStudent"><div class="mb-3"><input type="text" id="studentName" class="form-control" placeholder="Nama Lengkap Siswa" required></div><div class="mb-3"><input type="text" id="studentNisn" class="form-control" placeholder="NISN (Username)" required></div><button type="submit" class="btn btn-primary w-100" id="btnStudent">Tambahkan Siswa</button></form></div></div>
                 </div>
-                
-                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-3 mt-5 gap-3">
-                    <h4 class="fw-bold mb-0">Katalog Kelas Saya</h4>
-                    <button onclick="navigate('transactions')" class="btn btn-warning fw-bold text-dark px-4 shadow-sm"><i class="fa-solid fa-money-bill-transfer me-2"></i>Kelola Transaksi Pendaftaran</button>
-                </div>
-                <div id="courseList" class="row g-4"><div class="loader-container"><div class="spinner-border text-primary"></div></div></div>
-            `;
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-3 mt-5 gap-3"><h4 class="fw-bold mb-0">Katalog Kelas Saya</h4><button onclick="navigate('transactions')" class="btn btn-warning fw-bold text-dark px-4 shadow-sm"><i class="fa-solid fa-money-bill-transfer me-2"></i>Kelola Transaksi</button></div>
+                <div id="courseList" class="row g-4"><div class="loader-container"><div class="spinner-border text-primary"></div></div></div>`;
 
             document.getElementById('formAddCourse').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btn = document.getElementById('btnCourse'); btn.disabled = true; btn.innerHTML = 'Menyimpan...';
-                try {
-                    const { error } = await window.supabaseClient.from('courses').insert([{ title: document.getElementById('courseTitle').value, description: document.getElementById('courseDesc').value, price: document.getElementById('coursePrice').value || 0, teacher_id: state.user.id }]);
-                    if (error) throw error;
-                    showToast('Kelas berhasil dibuat!'); document.getElementById('formAddCourse').reset(); loadTeacherCourses();
-                } catch (err) { Swal.fire('Gagal', err.message, 'error'); } 
-                finally { btn.disabled = false; btn.innerHTML = 'Buat Kelas'; }
+                e.preventDefault(); const btn = document.getElementById('btnCourse'); btn.disabled = true; btn.innerHTML = 'Menyimpan...';
+                try { const { error } = await window.supabaseClient.from('courses').insert([{ title: document.getElementById('courseTitle').value, description: document.getElementById('courseDesc').value, price: document.getElementById('coursePrice').value || 0, teacher_id: state.user.id }]); if (error) throw error; showToast('Kelas dibuat!'); document.getElementById('formAddCourse').reset(); loadTeacherCourses(); } catch (err) { Swal.fire('Gagal', err.message, 'error'); } finally { btn.disabled = false; btn.innerHTML = 'Buat Kelas'; }
             });
 
             document.getElementById('formAddStudent').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btn = document.getElementById('btnStudent'); btn.disabled = true;
-                try {
-                    const { error } = await window.supabaseClient.from('users').insert([{ full_name: document.getElementById('studentName').value, nisn: document.getElementById('studentNisn').value, role: 'student', password: '123' }]);
-                    if (error) throw error;
-                    showToast('Siswa berhasil didaftarkan (Password Default: 123)'); document.getElementById('formAddStudent').reset();
-                } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
-                btn.disabled = false; btn.innerHTML = 'Tambahkan Siswa';
+                e.preventDefault(); const btn = document.getElementById('btnStudent'); btn.disabled = true;
+                try { const { error } = await window.supabaseClient.from('users').insert([{ full_name: document.getElementById('studentName').value, nisn: document.getElementById('studentNisn').value, role: 'student', password: '123' }]); if (error) throw error; showToast('Siswa ditambahkan (Password Default: 123)'); document.getElementById('formAddStudent').reset(); } catch (err) { Swal.fire('Gagal', err.message, 'error'); } btn.disabled = false; btn.innerHTML = 'Tambahkan Siswa';
             });
-
             loadTeacherCourses();
         };
 
         const loadTeacherCourses = async () => {
             const listContainer = document.getElementById('courseList');
             try {
-                const { data: courses, error } = await window.supabaseClient.from('courses').select('*').eq('teacher_id', state.user.id).order('created_at', { ascending: false });
-                if (error) throw error;
+                const { data: courses } = await window.supabaseClient.from('courses').select('*').eq('teacher_id', state.user.id).order('created_at', { ascending: false });
                 state.courses = courses || [];
-                
                 if (state.courses.length === 0) return listContainer.innerHTML = `<div class="col-12 text-center text-muted p-5 border bg-white rounded">Belum ada kelas yang Anda buat.</div>`;
-
                 let html = '';
                 state.courses.forEach(course => {
                     const priceText = parseInt(course.price) > 0 ? `Rp ${formatRupiah(course.price)}` : 'Gratis';
-                    html += `
-                        <div class="col-12 col-md-6 col-lg-4">
-                            <div class="card card-hover h-100">
-                                <span class="price-badge bg-secondary text-white">${priceText}</span>
-                                <div class="card-body d-flex flex-column mt-3">
-                                    <h5 class="card-title fw-bold">${course.title}</h5>
-                                    <p class="card-text text-muted flex-grow-1 small">${course.description}</p>
-                                    <button onclick="openCourseGlobal('${course.id}')" class="btn btn-outline-primary mt-3 w-100">Kelola Kelas</button>
-                                </div>
-                            </div>
-                        </div>`;
+                    html += `<div class="col-12 col-md-6 col-lg-4"><div class="card card-hover h-100"><span class="price-badge bg-secondary text-white">${priceText}</span><div class="card-body d-flex flex-column mt-3"><h5 class="card-title fw-bold">${course.title}</h5><p class="card-text text-muted flex-grow-1 small">${course.description}</p><button onclick="openCourseGlobal('${course.id}')" class="btn btn-outline-primary mt-3 w-100">Kelola Kelas</button></div></div></div>`;
                 });
                 listContainer.innerHTML = html;
-            } catch (err) { listContainer.innerHTML = `<div class="col-12 text-danger">Gagal memuat data kelas.</div>`; }
+            } catch (err) { listContainer.innerHTML = `<div class="col-12 text-danger">Gagal memuat data.</div>`; }
         };
 
-        // ==========================================
-        // KELOLA TRANSAKSI (SUPABASE)
-        // ==========================================
         const renderTransactions = async (container) => {
             container.innerHTML = `
                 <button onclick="navigate('dashboard')" class="btn btn-link text-decoration-none text-muted p-0 mb-4 fw-semibold"><i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Dashboard</button>
                 <h3 class="fw-bold mb-4">Kelola Transaksi Pendaftaran</h3>
-                <div class="card border-0 shadow-sm overflow-hidden">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light text-muted small">
-                                <tr><th class="ps-4 py-3">Waktu Transaksi</th><th class="py-3">Nama Siswa</th><th class="py-3">Mendaftar Kelas</th><th class="py-3 text-center">Status</th><th class="pe-4 py-3 text-center">Tindakan (Aksi)</th></tr>
-                            </thead>
-                            <tbody id="trxTableBody"><tr><td colspan="5" class="text-center p-5"><div class="spinner-border text-primary"></div></td></tr></tbody>
-                        </table>
-                    </div>
-                </div>`;
+                <div class="card border-0 shadow-sm overflow-hidden"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light text-muted small"><tr><th class="ps-4 py-3">Waktu Transaksi</th><th class="py-3">Nama Siswa</th><th class="py-3">Mendaftar Kelas</th><th class="py-3 text-center">Status</th><th class="pe-4 py-3 text-center">Aksi</th></tr></thead><tbody id="trxTableBody"><tr><td colspan="5" class="text-center p-5"><div class="spinner-border text-primary"></div></td></tr></tbody></table></div></div>`;
             loadTransactions();
         };
 
         window.loadTransactions = async () => {
             const tbody = document.getElementById('trxTableBody');
             try {
-                const { data, error } = await window.supabaseClient.from('transactions').select('id, created_at, status, amount, users(full_name), courses(title)').order('created_at', { ascending: false });
-                if (error) throw error;
-
-                if (!data || data.length === 0) return tbody.innerHTML = `<tr><td colspan="5" class="text-center p-5 text-muted">Belum ada transaksi yang masuk saat ini.</td></tr>`;
+                // Fetch manual untuk mencegah error foreign key
+                const { data: trxList } = await window.supabaseClient.from('transactions').select('*').order('created_at', { ascending: false });
+                const { data: usersData } = await window.supabaseClient.from('users').select('id, full_name');
+                const { data: coursesData } = await window.supabaseClient.from('courses').select('id, title');
+                
+                if (!trxList || trxList.length === 0) return tbody.innerHTML = `<tr><td colspan="5" class="text-center p-5 text-muted">Belum ada transaksi.</td></tr>`;
                 
                 let html = '';
-                data.forEach(trx => {
-                    const dateObj = new Date(trx.created_at);
-                    const date = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                    
+                trxList.forEach(trx => {
+                    const dateObj = new Date(trx.created_at); const date = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                     const isPaid = trx.status === 'PAID' || trx.status === 'approved';
                     const statusBadge = isPaid ? `<span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2">LUNAS / AKTIF</span>` : `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2"><i class="fa-regular fa-clock me-1"></i> PENDING</span>`;
-                    const actionBtn = isPaid ? `<button onclick="updateTrxStatus('${trx.id}', 'pending')" class="btn btn-sm btn-outline-danger">Batalkan Akses</button>` : `<button onclick="updateTrxStatus('${trx.id}', 'approved')" class="btn btn-sm btn-success"><i class="fa-solid fa-check me-1"></i> Approve</button>`;
-                    const studentName = trx.users ? trx.users.full_name : 'Siswa Tidak Diketahui';
-                    const courseTitle = trx.courses ? trx.courses.title : 'Kelas Tidak Diketahui';
+                    const actionBtn = isPaid ? `<button onclick="updateTrxStatus('${trx.id}', 'pending')" class="btn btn-sm btn-outline-danger">Batalkan</button>` : `<button onclick="updateTrxStatus('${trx.id}', 'approved')" class="btn btn-sm btn-success"><i class="fa-solid fa-check me-1"></i> Approve</button>`;
+                    
+                    const user = usersData.find(u => u.id === trx.student_id); const studentName = user ? user.full_name : 'Siswa';
+                    const course = coursesData.find(c => c.id === trx.course_id); const courseTitle = course ? course.title : 'Kelas';
 
                     html += `<tr><td class="ps-4 py-3 small text-muted">${date}</td><td class="py-3 fw-semibold text-dark">${studentName}</td><td class="py-3 small">${courseTitle}</td><td class="py-3 text-center">${statusBadge}</td><td class="pe-4 py-3 text-center">${actionBtn}</td></tr>`;
                 });
                 tbody.innerHTML = html;
-            } catch (err) { tbody.innerHTML = `<tr><td colspan="5" class="text-center p-5 text-danger">Gagal memuat data.</td></tr>`; }
+            } catch (err) { tbody.innerHTML = `<tr><td colspan="5" class="text-center p-5 text-danger">Gagal memuat.</td></tr>`; }
         };
 
         window.updateTrxStatus = (id, newStatus) => {
-            Swal.fire({
-                title: 'Konfirmasi Perubahan?', text: "Status akses kelas siswa akan diubah.", icon: 'question', showCancelButton: true, confirmButtonColor: '#10b981', confirmButtonText: 'Ya, Ubah Status'
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    Swal.showLoading();
-                    try {
-                        const { error } = await window.supabaseClient.from('transactions').update({ status: newStatus }).eq('id', id);
-                        if (error) throw error;
-                        showToast("Status berhasil diubah!"); loadTransactions(); 
-                    } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
-                }
+            Swal.fire({ title: 'Konfirmasi Perubahan?', text: "Status akses akan diubah.", icon: 'question', showCancelButton: true, confirmButtonColor: '#10b981', confirmButtonText: 'Ya, Ubah' }).then(async (result) => {
+                if (result.isConfirmed) { Swal.showLoading(); try { await window.supabaseClient.from('transactions').update({ status: newStatus }).eq('id', id); showToast("Status diubah!"); loadTransactions(); } catch (err) { Swal.fire('Gagal', err.message, 'error'); } }
             });
         };
 
         const renderCourseDetail = async (container) => {
             container.innerHTML = `
                 <button onclick="navigate('dashboard')" class="btn btn-link text-decoration-none text-muted p-0 mb-4 fw-semibold"><i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Dashboard</button>
-                <div class="card bg-dark text-white p-4 p-md-5 mb-4 rounded-4" style="background: linear-gradient(to right, #0f172a, #334155) !important;">
-                    <h2 class="fw-bold">${state.activeCourse.title}</h2><p class="mb-0 text-white-50">${state.activeCourse.description}</p>
-                </div>
-                <ul class="nav nav-tabs mb-4">
-                    <li class="nav-item"><button class="nav-link ${state.activeTab === 'materi' ? 'active' : ''}" onclick="switchTab('materi')"><i class="fa-solid fa-book me-2"></i>Materi & Tugas</button></li>
-                    <li class="nav-item"><button class="nav-link ${state.activeTab === 'tugas' ? 'active' : ''}" onclick="switchTab('tugas')"><i class="fa-solid fa-inbox me-2"></i>Penilaian Tugas</button></li>
-                    <li class="nav-item"><button class="nav-link ${state.activeTab === 'kuis' ? 'active' : ''}" onclick="switchTab('kuis')"><i class="fa-solid fa-list-check me-2"></i>Kelola Kuis</button></li>
-                    <li class="nav-item"><button class="nav-link ${state.activeTab === 'progress' ? 'active' : ''}" onclick="switchTab('progress')"><i class="fa-solid fa-chart-line me-2"></i>Pantau Progress</button></li>
-                </ul>
+                <div class="card bg-dark text-white p-4 p-md-5 mb-4 rounded-4" style="background: linear-gradient(to right, #0f172a, #334155) !important;"><h2 class="fw-bold">${state.activeCourse.title}</h2><p class="mb-0 text-white-50">${state.activeCourse.description}</p></div>
+                <ul class="nav nav-tabs mb-4"><li class="nav-item"><button class="nav-link ${state.activeTab === 'materi' ? 'active' : ''}" onclick="switchTab('materi')"><i class="fa-solid fa-book me-2"></i>Materi & Tugas</button></li><li class="nav-item"><button class="nav-link ${state.activeTab === 'tugas' ? 'active' : ''}" onclick="switchTab('tugas')"><i class="fa-solid fa-inbox me-2"></i>Pantau Tugas</button></li><li class="nav-item"><button class="nav-link ${state.activeTab === 'kuis' ? 'active' : ''}" onclick="switchTab('kuis')"><i class="fa-solid fa-list-check me-2"></i>Kelola Kuis</button></li><li class="nav-item"><button class="nav-link ${state.activeTab === 'progress' ? 'active' : ''}" onclick="switchTab('progress')"><i class="fa-solid fa-chart-line me-2"></i>Pantau Progress</button></li></ul>
                 <div id="tabContent"><div class="loader-container"><div class="spinner-border text-primary"></div></div></div>`;
             loadTabContent();
         };
 
         window.switchTab = (tabName) => { state.activeTab = tabName; renderCourseDetail(document.getElementById('main-content')); };
 
-        // ==========================================
-        // RENDER KONTEN TAB KELAS (SUPABASE)
-        // ==========================================
         const loadTabContent = async () => {
             const content = document.getElementById('tabContent');
 
@@ -318,243 +211,137 @@
 
                 let html = `
                     <div class="card p-4 mb-4 border border-primary border-opacity-25 bg-white"><h5 class="fw-bold mb-3">Tambah Materi / Tugas Baru</h5>
-                        <form id="formAddMaterial">
-                            <div class="row g-3 mb-3"><div class="col-md-9"><input type="text" id="matTitle" class="form-control" placeholder="Judul Materi / Tugas" required></div><div class="col-md-3"><input type="number" id="matOrder" class="form-control" placeholder="Urutan (Cth: 1)" value="${materials.length + 1}" required></div></div>
-                            <div class="mb-3"><textarea id="matDesc" class="form-control" placeholder="Deskripsi Singkat..." rows="2" required></textarea></div>
-                            <div class="mb-3"><label class="form-label fw-semibold small text-muted">Instruksi Tugas (Opsional)</label><textarea id="matUrl" class="form-control" placeholder="Kosongkan jika tidak perlu kumpul file tugas." rows="2"></textarea></div>
-                            <div class="mb-3"><label class="form-label fw-semibold small text-muted">Kode Iframe / Video (Opsional)</label><textarea id="matEmbed" class="form-control" placeholder="Paste kode <iframe> YouTube, dll..." rows="2"></textarea></div>
-                            <button type="submit" id="btnMat" class="btn btn-primary"><i class="fa-solid fa-plus me-2"></i> Simpan Materi</button>
-                        </form>
+                        <form id="formAddMaterial"><div class="row g-3 mb-3"><div class="col-md-9"><input type="text" id="matTitle" class="form-control" placeholder="Judul Materi / Tugas" required></div><div class="col-md-3"><input type="number" id="matOrder" class="form-control" placeholder="Urutan (Cth: 1)" value="${materials.length + 1}" required></div></div><div class="mb-3"><textarea id="matDesc" class="form-control" placeholder="Deskripsi Singkat..." rows="2" required></textarea></div><div class="mb-3"><label class="form-label fw-semibold small text-muted">Instruksi Tugas (Opsional)</label><textarea id="matUrl" class="form-control" placeholder="Kosongkan jika tidak perlu kumpul tugas." rows="2"></textarea></div><div class="mb-3"><label class="form-label fw-semibold small text-muted">Kode Iframe (Opsional)</label><textarea id="matEmbed" class="form-control" placeholder="Paste kode <iframe>..." rows="2"></textarea></div><button type="submit" id="btnMat" class="btn btn-primary"><i class="fa-solid fa-plus me-2"></i> Simpan Materi</button></form>
                     </div><div class="d-flex flex-column gap-3">`;
 
-                if (materials.length === 0) { html += `<div class="text-center text-muted p-5 bg-white rounded border">Belum ada materi pembelajaran.</div>`; } 
+                if (materials.length === 0) { html += `<div class="text-center text-muted p-5 bg-white rounded border">Belum ada materi.</div>`; } 
                 else {
                     materials.forEach((mat, idx) => {
                         const matStr = JSON.stringify(mat).replace(/"/g, '&quot;');
                         let embedPreview = mat.embed_code ? `<div class="mt-3 ratio ratio-16x9 bg-light rounded overflow-hidden shadow-sm border">${mat.embed_code}</div>` : '';
                         let taskBadge = mat.content_url ? `<span class="badge bg-warning text-dark ms-2"><i class="fa-solid fa-file-arrow-up me-1"></i> Ada Tugas</span>` : '';
-
-                        html += `
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="d-flex flex-column flex-md-row gap-3">
-                                        <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 50px; font-size: 1.2rem;">${mat.order_number || idx + 1}</div>
-                                        <div class="flex-grow-1"><h5 class="fw-bold mb-1">${mat.title} ${taskBadge}</h5><p class="text-muted small mb-0">${mat.description}</p></div>
-                                        <div class="d-flex gap-2 w-100 w-md-auto mt-3 mt-md-0 align-items-start">
-                                            <button onclick="openEditModal(${matStr})" class="btn btn-warning text-white"><i class="fa-solid fa-pen"></i></button>
-                                            <button onclick="deleteMaterial('${mat.id}')" class="btn btn-danger"><i class="fa-solid fa-trash"></i></button>
-                                        </div>
-                                    </div>
-                                    ${embedPreview}
-                                </div>
-                            </div>`;
+                        html += `<div class="card"><div class="card-body"><div class="d-flex flex-column flex-md-row gap-3"><div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 50px; font-size: 1.2rem;">${mat.order_number || idx + 1}</div><div class="flex-grow-1"><h5 class="fw-bold mb-1">${mat.title} ${taskBadge}</h5><p class="text-muted small mb-0">${mat.description}</p></div><div class="d-flex gap-2 w-100 w-md-auto mt-3 mt-md-0 align-items-start"><button onclick="openEditModal(${matStr})" class="btn btn-warning text-white"><i class="fa-solid fa-pen"></i></button><button onclick="deleteMaterial('${mat.id}')" class="btn btn-danger"><i class="fa-solid fa-trash"></i></button></div></div>${embedPreview}</div></div>`;
                     });
                 }
-                html += `</div>`;
-                content.innerHTML = html;
+                html += `</div>`; content.innerHTML = html;
 
                 document.getElementById('formAddMaterial').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const btn = document.getElementById('btnMat'); btn.disabled = true; btn.innerHTML = 'Menyimpan...';
+                    e.preventDefault(); const btn = document.getElementById('btnMat'); btn.disabled = true; btn.innerHTML = 'Menyimpan...';
                     const payload = { course_id: state.activeCourse.id, title: document.getElementById('matTitle').value, description: document.getElementById('matDesc').value, content_url: document.getElementById('matUrl').value, order_number: parseInt(document.getElementById('matOrder').value), embed_code: document.getElementById('matEmbed').value };
-                    try {
-                        const { error } = await window.supabaseClient.from('materials').insert([payload]);
-                        if (error) throw error;
-                        showToast("Materi berhasil ditambahkan!"); loadTabContent();
-                    } catch (err) { Swal.fire('Gagal', err.message, 'error'); btn.disabled = false; btn.innerHTML = 'Simpan Materi'; }
+                    try { await window.supabaseClient.from('materials').insert([payload]); showToast("Materi ditambah!"); loadTabContent(); } catch (err) { Swal.fire('Gagal', err.message, 'error'); btn.disabled = false; btn.innerHTML = 'Simpan Materi'; }
                 });
-
             } 
-            // ==========================================
-            // PENILAIAN TUGAS OLEH GURU (SUPABASE)
-            // ==========================================
             else if (state.activeTab === 'tugas') {
-                const { data: subData, error } = await window.supabaseClient.from('submissions').select('id, submission_url, score, users(full_name), materials(title)').eq('course_id', state.activeCourse.id);
+                // FETCH DATA MANUAL UNTUK MENGHINDARI ERROR JOIN
+                const { data: subData } = await window.supabaseClient.from('submissions').select('*').eq('course_id', state.activeCourse.id);
+                const { data: usersData } = await window.supabaseClient.from('users').select('id, full_name');
+                const { data: materialsData } = await window.supabaseClient.from('materials').select('id, title');
+                
                 const submissions = subData || [];
-
-                let html = `
-                    <div class="card border-0 shadow-sm overflow-hidden mb-4">
-                        <div class="card-header bg-white p-4 d-flex justify-content-between align-items-center border-bottom"><h5 class="fw-bold mb-0">Tugas yang Masuk (${submissions.length})</h5></div>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light text-muted small"><tr><th class="ps-4 py-3">Nama Siswa</th><th class="py-3">Materi / Tugas</th><th class="py-3 text-center">Link Jawaban</th><th class="py-3 text-center">Nilai (Score)</th><th class="pe-4 py-3 text-center">Aksi</th></tr></thead>
-                                <tbody>
-                `;
-                if (submissions.length === 0) { html += `<tr><td colSpan="5" class="text-center p-5 text-muted">Belum ada tugas yang dikumpulkan siswa.</td></tr>`; } 
+                let html = `<div class="card border-0 shadow-sm overflow-hidden mb-4"><div class="card-header bg-white p-4 border-bottom"><h5 class="fw-bold mb-0">Tugas Masuk (${submissions.length})</h5></div><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light text-muted small"><tr><th class="ps-4 py-3">Nama Siswa</th><th class="py-3">Materi Tugas</th><th class="py-3 text-center">File</th><th class="py-3 text-center">Nilai</th><th class="pe-4 py-3 text-center">Aksi</th></tr></thead><tbody>`;
+                
+                if (submissions.length === 0) { html += `<tr><td colSpan="5" class="text-center p-5 text-muted">Belum ada tugas masuk.</td></tr>`; } 
                 else {
                     submissions.forEach(sub => {
-                        let scoreBadge = sub.score !== null && sub.score !== '' ? `<span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2" style="font-size:0.9rem;">${sub.score} / 100</span>` : `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2" style="font-size:0.9rem;">Belum Dinilai</span>`;
-                        let studentName = sub.users ? sub.users.full_name : 'Siswa Tidak Diketahui';
-                        let materialTitle = sub.materials ? sub.materials.title : 'Materi Terhapus';
+                        let scoreBadge = sub.score !== null ? `<span class="badge bg-success bg-opacity-10 text-success px-3 py-2">${sub.score} / 100</span>` : `<span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2">Belum Dinilai</span>`;
+                        let user = usersData ? usersData.find(u => u.id === sub.student_id) : null;
+                        let mat = materialsData ? materialsData.find(m => m.id === sub.material_id) : null;
+                        let studentName = user ? user.full_name : 'Siswa'; let materialTitle = mat ? mat.title : 'Materi';
 
-                        html += `
-                            <tr>
-                                <td class="ps-4 py-3 fw-semibold text-dark">${studentName}</td>
-                                <td class="py-3"><span class="small text-muted">${materialTitle}</span></td>
-                                <td class="py-3 text-center"><a href="${sub.submission_url}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill"><i class="fa-solid fa-link me-1"></i> Buka File</a></td>
-                                <td class="py-3 text-center">${scoreBadge}</td>
-                                <td class="pe-4 py-3 text-center"><button onclick="gradeSubmission('${sub.id}', '${studentName}')" class="btn btn-sm btn-success"><i class="fa-solid fa-check me-1"></i> Beri Nilai</button></td>
-                            </tr>`;
+                        html += `<tr><td class="ps-4 py-3 fw-semibold text-dark">${studentName}</td><td class="py-3"><span class="small text-muted">${materialTitle}</span></td><td class="py-3 text-center"><a href="${sub.submission_url}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill"><i class="fa-solid fa-link me-1"></i> Buka</a></td><td class="py-3 text-center">${scoreBadge}</td><td class="pe-4 py-3 text-center"><button onclick="gradeSubmission('${sub.id}', '${studentName}')" class="btn btn-sm btn-success">Beri Nilai</button></td></tr>`;
                     });
                 }
-                html += `</tbody></table></div></div>`;
-                content.innerHTML = html;
-
+                html += `</tbody></table></div></div>`; content.innerHTML = html;
             } 
-            // TAB KELOLA KUIS (SUPABASE)
             else if (state.activeTab === 'kuis') {
                 const { data: quizzesData } = await window.supabaseClient.from('quizzes').select('*').eq('course_id', state.activeCourse.id);
                 const quizzes = quizzesData || [];
-
-                let html = `
-                    <div class="card p-4 mb-4 border border-info border-opacity-25 bg-white">
-                        <h5 class="fw-bold mb-1">Tambah Soal Kuis</h5><p class="text-muted small mb-3">Siswa harus mendapatkan nilai minimal 80 untuk lulus.</p>
-                        <form id="formAddQuiz">
-                            <div class="mb-3"><label class="form-label fw-bold small">Pertanyaan</label><textarea id="qQuestion" class="form-control" placeholder="Tuliskan pertanyaan di sini..." rows="2" required></textarea></div>
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">A</span><input type="text" id="qA" class="form-control" placeholder="Pilihan A" required></div></div>
-                                <div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">B</span><input type="text" id="qB" class="form-control" placeholder="Pilihan B" required></div></div>
-                                <div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">C</span><input type="text" id="qC" class="form-control" placeholder="Pilihan C" required></div></div>
-                                <div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">D</span><input type="text" id="qD" class="form-control" placeholder="Pilihan D" required></div></div>
-                            </div>
-                            <div class="mb-3"><label class="form-label fw-bold small">Kunci Jawaban Benar</label><select id="qCorrect" class="form-select" required><option value="" disabled selected>-- Pilih Kunci --</option><option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option></select></div>
-                            <button type="submit" id="btnQuiz" class="btn btn-info text-white"><i class="fa-solid fa-plus me-2"></i> Tambahkan Soal</button>
-                        </form>
-                    </div>
-                    <h5 class="fw-bold mb-3 mt-4">Daftar Soal Kuis (${quizzes.length} Soal)</h5><div class="d-flex flex-column gap-3">
-                `;
+                let html = `<div class="card p-4 mb-4 border border-info border-opacity-25 bg-white"><h5 class="fw-bold mb-1">Tambah Soal Kuis</h5><form id="formAddQuiz"><div class="mb-3"><textarea id="qQuestion" class="form-control" placeholder="Pertanyaan..." required></textarea></div><div class="row g-3 mb-3"><div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">A</span><input type="text" id="qA" class="form-control" required></div></div><div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">B</span><input type="text" id="qB" class="form-control" required></div></div><div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">C</span><input type="text" id="qC" class="form-control" required></div></div><div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">D</span><input type="text" id="qD" class="form-control" required></div></div></div><div class="mb-3"><select id="qCorrect" class="form-select" required><option value="" disabled selected>-- Pilih Kunci Jawaban --</option><option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option></select></div><button type="submit" id="btnQuiz" class="btn btn-info text-white">Tambahkan Soal</button></form></div><h5 class="fw-bold mb-3 mt-4">Daftar Soal Kuis (${quizzes.length})</h5><div class="d-flex flex-column gap-3">`;
+                
                 if (quizzes.length === 0) { html += `<div class="text-center text-muted p-5 bg-white rounded border">Belum ada soal kuis.</div>`; } 
                 else {
-                    quizzes.forEach((q, idx) => {
-                        html += `
-                            <div class="card border border-light shadow-sm">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-3"><h6 class="fw-bold mb-0"><span class="badge bg-secondary me-2">Soal ${idx + 1}</span> ${q.question}</h6><button onclick="deleteQuiz('${q.id}')" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></div>
-                                    <div class="row g-2 small">
-                                        <div class="col-md-6"><div class="p-2 border rounded ${q.correct === 'a' ? 'correct-answer' : 'bg-light'}"><b>A.</b> ${q.a}</div></div>
-                                        <div class="col-md-6"><div class="p-2 border rounded ${q.correct === 'b' ? 'correct-answer' : 'bg-light'}"><b>B.</b> ${q.b}</div></div>
-                                        <div class="col-md-6"><div class="p-2 border rounded ${q.correct === 'c' ? 'correct-answer' : 'bg-light'}"><b>C.</b> ${q.c}</div></div>
-                                        <div class="col-md-6"><div class="p-2 border rounded ${q.correct === 'd' ? 'correct-answer' : 'bg-light'}"><b>D.</b> ${q.d}</div></div>
-                                    </div>
-                                </div>
-                            </div>`;
-                    });
+                    quizzes.forEach((q, idx) => { html += `<div class="card border border-light shadow-sm"><div class="card-body"><div class="d-flex justify-content-between align-items-start mb-3"><h6 class="fw-bold mb-0"><span class="badge bg-secondary me-2">Soal ${idx + 1}</span> ${q.question}</h6><button onclick="deleteQuiz('${q.id}')" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></div><div class="row g-2 small"><div class="col-md-6"><div class="p-2 border rounded ${q.correct === 'a' ? 'correct-answer' : 'bg-light'}"><b>A.</b> ${q.a}</div></div><div class="col-md-6"><div class="p-2 border rounded ${q.correct === 'b' ? 'correct-answer' : 'bg-light'}"><b>B.</b> ${q.b}</div></div><div class="col-md-6"><div class="p-2 border rounded ${q.correct === 'c' ? 'correct-answer' : 'bg-light'}"><b>C.</b> ${q.c}</div></div><div class="col-md-6"><div class="p-2 border rounded ${q.correct === 'd' ? 'correct-answer' : 'bg-light'}"><b>D.</b> ${q.d}</div></div></div></div></div>`; });
                 }
-                html += `</div>`;
-                content.innerHTML = html;
+                html += `</div>`; content.innerHTML = html;
 
                 document.getElementById('formAddQuiz').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const btn = document.getElementById('btnQuiz'); btn.disabled = true; btn.innerHTML = 'Menyimpan...';
+                    e.preventDefault(); const btn = document.getElementById('btnQuiz'); btn.disabled = true;
                     const payload = { course_id: state.activeCourse.id, question: document.getElementById('qQuestion').value, a: document.getElementById('qA').value, b: document.getElementById('qB').value, c: document.getElementById('qC').value, d: document.getElementById('qD').value, correct: document.getElementById('qCorrect').value };
-                    try {
-                        const { error } = await window.supabaseClient.from('quizzes').insert([payload]);
-                        if (error) throw error; showToast("Soal berhasil ditambahkan!"); loadTabContent();
-                    } catch (err) { Swal.fire('Gagal', err.message, 'error'); } 
+                    try { await window.supabaseClient.from('quizzes').insert([payload]); showToast("Soal ditambahkan!"); loadTabContent(); } catch (err) { Swal.fire('Gagal', err.message, 'error'); } 
                 });
-
             } 
-            // TAB PROGRESS (MASIH API GAS SEMENTARA KARENA LAPORAN KOMPLEKS)
             else if (state.activeTab === 'progress') {
-                const resRep = await apiCall('getCourseReport', { course_id: state.activeCourse.id });
-                if (!resRep.success) return content.innerHTML = `<div class="alert alert-danger">Gagal memuat laporan.</div>`;
+                // FETCH LAPORAN MANUAL FULL SUPABASE
+                content.innerHTML = `<div class="text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Merekap laporan nilai...</p></div>`;
                 
-                const { students, progress: progressData, materialsCount, allScores } = resRep.data;
-                let html = `
-                    <div class="card border-0 shadow-sm overflow-hidden">
-                        <div class="card-header bg-white p-4 d-flex justify-content-between align-items-center border-bottom">
-                            <div><h5 class="fw-bold mb-0">Laporan Kelulusan Siswa</h5><small class="text-muted">Total Materi: ${materialsCount}</small></div>
-                            <button onclick="exportToPDF()" class="btn btn-danger btn-sm"><i class="fa-solid fa-file-pdf me-2"></i> Cetak PDF</button>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0" id="progressTable">
-                                <thead class="table-light text-muted small"><tr><th class="ps-4 py-3">Nama Siswa</th><th class="py-3">Materi (100%)</th><th class="py-3 text-center">Nilai Kuis</th><th class="pe-4 py-3 text-center">Status Kelulusan</th></tr></thead>
-                                <tbody>
-                `;
-                if (students.length === 0) { html += `<tr><td colSpan="4" class="text-center p-4 text-muted">Belum ada siswa terdaftar.</td></tr>`; } 
+                const { data: trxData } = await window.supabaseClient.from('transactions').select('*').eq('course_id', state.activeCourse.id);
+                const { data: usersData } = await window.supabaseClient.from('users').select('id, full_name, nisn');
+                
+                let students = [];
+                if (trxData && usersData) {
+                    const enrolledIds = trxData.filter(t => t.status === 'PAID' || t.status === 'approved').map(t => t.student_id);
+                    const uniqueStudentIds = [...new Set(enrolledIds)];
+                    students = usersData.filter(u => uniqueStudentIds.includes(u.id));
+                }
+
+                const { data: materialsData } = await window.supabaseClient.from('materials').select('id').eq('course_id', state.activeCourse.id);
+                const materialsCount = materialsData ? materialsData.length : 0;
+                const materialIds = materialsData ? materialsData.map(m => m.id) : [];
+
+                let progressData = [];
+                if (materialIds.length > 0) {
+                    const { data: pData } = await window.supabaseClient.from('progress').select('*').in('material_id', materialIds);
+                    progressData = pData || [];
+                }
+
+                const { data: allScores } = await window.supabaseClient.from('quiz_scores').select('*').eq('course_id', state.activeCourse.id);
+                const scoresData = allScores || [];
+
+                let html = `<div class="card border-0 shadow-sm overflow-hidden"><div class="card-header bg-white p-4 d-flex justify-content-between align-items-center border-bottom"><div><h5 class="fw-bold mb-0">Laporan Kelulusan Siswa</h5><small class="text-muted">Total Materi: ${materialsCount}</small></div><button onclick="exportToPDF()" class="btn btn-danger btn-sm"><i class="fa-solid fa-file-pdf me-2"></i> Cetak PDF</button></div><div class="table-responsive"><table class="table table-hover align-middle mb-0" id="progressTable"><thead class="table-light text-muted small"><tr><th class="ps-4 py-3">Nama Siswa</th><th class="py-3">Materi (100%)</th><th class="py-3 text-center">Nilai Kuis</th><th class="pe-4 py-3 text-center">Status Lulus</th></tr></thead><tbody>`;
+                
+                if (students.length === 0) { html += `<tr><td colSpan="4" class="text-center p-4 text-muted">Belum ada siswa mendaftar.</td></tr>`; } 
                 else {
                     students.forEach(student => {
                         const completedCount = progressData.filter(p => p.student_id === student.id).length;
                         const percentage = materialsCount === 0 ? 0 : Math.round((completedCount / materialsCount) * 100);
-                        const studentScores = allScores ? allScores.filter(s => s.student_id === student.id) : [];
+                        const studentScores = scoresData.filter(s => s.student_id === student.id);
                         const bestScore = studentScores.length > 0 ? Math.max(...studentScores.map(s => s.score)) : 0;
                         const hasTakenQuiz = studentScores.length > 0;
                         const isLulus = (percentage === 100 && materialsCount > 0) && bestScore >= 80;
                         let scoreHtml = hasTakenQuiz ? `<span class="fw-bold ${bestScore >= 80 ? 'text-success' : 'text-danger'}">${bestScore}</span>` : `<span class="text-muted small">-</span>`;
 
-                        html += `
-                            <tr>
-                                <td class="ps-4 py-3 fw-semibold text-dark">${student.full_name}<br><small class="text-muted fw-normal">${student.nisn}</small></td>
-                                <td class="py-3"><div class="progress mb-1" style="height: 6px;"><div class="progress-bar ${percentage === 100 ? 'bg-success' : 'bg-primary'}" style="width: ${percentage}%"></div></div><small class="text-muted fw-bold" style="font-size: 0.75rem;">${percentage}% (${completedCount}/${materialsCount})</small></td>
-                                <td class="py-3 text-center" style="font-size: 1.1rem;">${scoreHtml}</td>
-                                <td class="pe-4 py-3 text-center">${isLulus ? `<span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="fa-solid fa-award me-1"></i> LULUS</span>` : `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning">BELUM</span>`}</td>
-                            </tr>`;
+                        html += `<tr><td class="ps-4 py-3 fw-semibold text-dark">${student.full_name}<br><small class="text-muted fw-normal">${student.nisn}</small></td><td class="py-3"><div class="progress mb-1" style="height: 6px;"><div class="progress-bar ${percentage === 100 ? 'bg-success' : 'bg-primary'}" style="width: ${percentage}%"></div></div><small class="text-muted fw-bold" style="font-size: 0.75rem;">${percentage}% (${completedCount}/${materialsCount})</small></td><td class="py-3 text-center" style="font-size: 1.1rem;">${scoreHtml}</td><td class="pe-4 py-3 text-center">${isLulus ? `<span class="badge bg-success bg-opacity-10 text-success">LULUS</span>` : `<span class="badge bg-warning bg-opacity-10 text-warning">BELUM</span>`}</td></tr>`;
                     });
                 }
-                html += `</tbody></table></div></div>`;
-                content.innerHTML = html;
+                html += `</tbody></table></div></div>`; content.innerHTML = html;
             }
         };
 
-        // ==========================================
-        // FUNGSI AKSI GURU (NILAI, EDIT, HAPUS)
-        // ==========================================
         window.gradeSubmission = (id, studentName) => {
-            Swal.fire({
-                title: 'Beri Nilai Tugas',
-                html: `<p class="mb-3 text-muted">Masukkan nilai (1-100) untuk <b>${studentName}</b></p><input type="number" id="gradeScore" class="form-control text-center fs-4 fw-bold" placeholder="100" min="0" max="100">`,
-                showCancelButton: true, confirmButtonText: 'Simpan Nilai', cancelButtonText: 'Batal', confirmButtonColor: '#10b981',
-                preConfirm: () => { 
-                    const score = document.getElementById('gradeScore').value; 
-                    if(!score) Swal.showValidationMessage('Nilai tidak boleh kosong!'); 
-                    return { id: id, score: parseInt(score) }; 
-                }
+            Swal.fire({ title: 'Beri Nilai', html: `<p class="mb-3 text-muted">Nilai (1-100) untuk <b>${studentName}</b></p><input type="number" id="gradeScore" class="form-control text-center fs-4 fw-bold" placeholder="100">`, showCancelButton: true, confirmButtonText: 'Simpan', confirmButtonColor: '#10b981', preConfirm: () => { const score = document.getElementById('gradeScore').value; if(!score) Swal.showValidationMessage('Isi nilai!'); return { id: id, score: parseInt(score) }; }
             }).then(async (result) => {
-                if (result.isConfirmed) { 
-                    Swal.showLoading(); 
-                    try {
-                        const { error } = await window.supabaseClient.from('submissions').update({ score: result.value.score }).eq('id', result.value.id);
-                        if (error) throw error;
-                        showToast('Berhasil memberikan nilai!'); loadTabContent(); 
-                    } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
-                }
+                if (result.isConfirmed) { Swal.showLoading(); try { await window.supabaseClient.from('submissions').update({ score: result.value.score }).eq('id', result.value.id); showToast('Nilai disimpan!'); loadTabContent(); } catch (err) { Swal.fire('Gagal', err.message, 'error'); } }
             });
         };
 
         window.openEditModal = (mat) => {
-            Swal.fire({
-                title: 'Edit Materi',
-                html: `<div class="text-start">
-                        <div class="mb-3"><label class="form-label fw-bold small">Judul Materi</label><input type="text" id="editTitle" class="form-control" value="${mat.title}"></div>
-                        <div class="mb-3"><label class="form-label fw-bold small">Urutan (Angka)</label><input type="number" id="editOrder" class="form-control" value="${mat.order_number}"></div>
-                        <div class="mb-3"><label class="form-label fw-bold small">Deskripsi</label><textarea id="editDesc" class="form-control" rows="2">${mat.description}</textarea></div>
-                        <div class="mb-3"><label class="form-label fw-bold small text-primary">Instruksi Tugas</label><textarea id="editUrl" class="form-control" rows="2" placeholder="Kosongkan jika tidak ada tugas">${mat.content_url || ''}</textarea></div>
-                        <div class="mb-3"><label class="form-label fw-bold small">Kode Iframe</label><textarea id="editEmbed" class="form-control" rows="2">${mat.embed_code || ''}</textarea></div>
-                    </div>`,
-                showCancelButton: true, confirmButtonText: '<i class="fa-solid fa-save"></i> Simpan', cancelButtonText: 'Batal', confirmButtonColor: '#0ea5e9',
-                preConfirm: () => { return { id: mat.id, title: document.getElementById('editTitle').value, order_number: parseInt(document.getElementById('editOrder').value), description: document.getElementById('editDesc').value, content_url: document.getElementById('editUrl').value, embed_code: document.getElementById('editEmbed').value } }
+            Swal.fire({ title: 'Edit Materi', html: `<div class="text-start"><div class="mb-3"><label class="form-label small">Judul</label><input type="text" id="editTitle" class="form-control" value="${mat.title}"></div><div class="mb-3"><label class="form-label small">Urutan</label><input type="number" id="editOrder" class="form-control" value="${mat.order_number}"></div><div class="mb-3"><label class="form-label small">Deskripsi</label><textarea id="editDesc" class="form-control">${mat.description}</textarea></div><div class="mb-3"><label class="form-label small text-primary">Instruksi Tugas</label><textarea id="editUrl" class="form-control">${mat.content_url || ''}</textarea></div></div>`, showCancelButton: true, confirmButtonText: 'Simpan', preConfirm: () => { return { id: mat.id, title: document.getElementById('editTitle').value, order_number: parseInt(document.getElementById('editOrder').value), description: document.getElementById('editDesc').value, content_url: document.getElementById('editUrl').value } }
             }).then(async (result) => {
-                if (result.isConfirmed) { 
-                    Swal.showLoading(); 
-                    const { error } = await window.supabaseClient.from('materials').update({ title: result.value.title, order_number: result.value.order_number, description: result.value.description, content_url: result.value.content_url, embed_code: result.value.embed_code }).eq('id', result.value.id);
-                    if (!error) { showToast("Materi diperbarui"); loadTabContent(); } else { Swal.fire('Error', error.message, 'error'); }
-                }
+                if (result.isConfirmed) { Swal.showLoading(); await window.supabaseClient.from('materials').update({ title: result.value.title, order_number: result.value.order_number, description: result.value.description, content_url: result.value.content_url }).eq('id', result.value.id); showToast("Materi diperbarui"); loadTabContent(); }
             });
         };
 
-        window.deleteMaterial = (id) => { Swal.fire({ title: 'Hapus Materi?', text: "Data tidak bisa dikembalikan!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Hapus' }).then(async (result) => { if (result.isConfirmed) { Swal.showLoading(); const { error } = await window.supabaseClient.from('materials').delete().eq('id', id); if (!error) { showToast("Materi dihapus"); loadTabContent(); } else { Swal.fire('Error', error.message, 'error'); } } }); };
-        window.deleteQuiz = (id) => { Swal.fire({ title: 'Hapus Soal?', text: "Soal dihapus permanen.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Hapus' }).then(async (result) => { if (result.isConfirmed) { Swal.showLoading(); const { error } = await window.supabaseClient.from('quizzes').delete().eq('id', id); if (!error) { showToast("Soal dihapus!"); loadTabContent(); } else { Swal.fire('Error', error.message, 'error'); } } }); };
+        window.deleteMaterial = (id) => { Swal.fire({ title: 'Hapus?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Hapus' }).then(async (result) => { if (result.isConfirmed) { await window.supabaseClient.from('materials').delete().eq('id', id); showToast("Terhapus"); loadTabContent(); } }); };
+        window.deleteQuiz = (id) => { Swal.fire({ title: 'Hapus?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Hapus' }).then(async (result) => { if (result.isConfirmed) { await window.supabaseClient.from('quizzes').delete().eq('id', id); showToast("Terhapus"); loadTabContent(); } }); };
 
         window.exportToPDF = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.text('LAPORAN PROGRESS & NILAI SISWA', 14, 20);
-            doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text(`Mata Pelajaran : ${state.activeCourse.title}`, 14, 28); doc.text(`Pengajar       : ${state.user.full_name}`, 14, 34); doc.text(`Tanggal Cetak  : ${new Date().toLocaleDateString('id-ID')}`, 14, 40);
-            doc.autoTable({ html: '#progressTable', startY: 48, theme: 'grid', headStyles: { fillColor: [14, 165, 233] }, styles: { fontSize: 10, cellPadding: 4 } });
-            doc.save(`Laporan_${state.activeCourse.title.replace(/\s+/g, '_')}.pdf`); showToast('PDF berhasil diunduh!');
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.text('LAPORAN NILAI SISWA', 14, 20); doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text(`Kelas : ${state.activeCourse.title}`, 14, 28);
+            doc.autoTable({ html: '#progressTable', startY: 35, theme: 'grid', headStyles: { fillColor: [14, 165, 233] }, styles: { fontSize: 10 } });
+            doc.save(`Laporan_${state.activeCourse.title}.pdf`);
         };
 
         renderApp();
     </script>
 </body>
 </html>
-
