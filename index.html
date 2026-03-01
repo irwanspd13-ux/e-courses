@@ -421,16 +421,20 @@
             const content = document.getElementById('tabContent');
             const certArea = document.getElementById('certificateContainer');
 
-            const [resMat, resProg, resScore, resQuiz, resSub] = await Promise.all([
-                apiCall('getMaterials', { course_id: state.activeCourse.id }),
-                apiCall('getProgress', { student_id: state.user.id }),
+            // 1. Ambil Materi & Progress dari Supabase
+            const { data: materialsData } = await window.supabaseClient.from('materials').select('*').eq('course_id', state.activeCourse.id).order('order_number', { ascending: true });
+            const { data: progressData } = await window.supabaseClient.from('progress').select('material_id').eq('student_id', state.user.id);
+            
+            // 2. Kuis, Nilai, dan Tugas masih dari GAS (sementara)
+            const [resScore, resQuiz, resSub] = await Promise.all([
                 apiCall('getQuizScore', { student_id: state.user.id, course_id: state.activeCourse.id }),
                 apiCall('getQuiz', { course_id: state.activeCourse.id, role: 'student' }),
                 apiCall('getSubmissions', { course_id: state.activeCourse.id }) 
             ]);
 
-            const materials = resMat.data || [];
-            const progressMap = resProg.success ? resProg.data.map(p => p.material_id) : [];
+            const materials = materialsData || [];
+            const progressMap = progressData ? progressData.map(p => p.material_id) : [];
+            
             const bestScore = resScore.data ? resScore.data.score : null;
             const isPassedQuiz = resScore.data ? resScore.data.passed : false;
             const quizzes = resQuiz.data || [];
@@ -594,8 +598,21 @@
         };
 
         window.markDone = async (materialId) => {
-            const res = await apiCall('markProgress', { student_id: state.user.id, material_id: materialId });
-            if(res.success) { showToast(res.message); renderCourseDetail(document.getElementById('main-content')); }
+            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+            try {
+                // Cek apakah sudah pernah ditandai sebelumnya
+                const { data: existing } = await window.supabaseClient.from('progress').select('id').eq('student_id', state.user.id).eq('material_id', materialId).maybeSingle();
+                
+                if (!existing) {
+                    const { error } = await window.supabaseClient.from('progress').insert([{ student_id: state.user.id, material_id: materialId, is_completed: true }]);
+                    if (error) throw error;
+                }
+                
+                showToast("Materi telah diselesaikan!"); 
+                renderCourseDetail(document.getElementById('main-content'));
+            } catch (err) {
+                Swal.fire('Gagal', err.message, 'error');
+            }
         };
 
         window.submitTask = async (materialId) => {
@@ -661,4 +678,5 @@
     </script>
 </body>
 </html>
+
 
