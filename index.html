@@ -264,7 +264,7 @@
                             let taskHtml = '';
                             if (mat.content_url) { 
                                 const existingSub = mySubmissions.find(s => s.material_id === mat.id);
-                                const subUrl = existingSub ? existingSub.submission_url : '';
+                                const subUrl = existingSub ? existingSub.file_url : '';
                                 const scoreBadge = (existingSub && existingSub.score !== null) ? `<span class="badge bg-success ms-2 rounded-pill">Nilai: ${existingSub.score}</span>` : (existingSub ? `<span class="badge bg-secondary ms-2 rounded-pill">Menunggu Penilaian</span>` : '');
                                 const btnText = existingSub ? '<i class="fa-solid fa-upload"></i> Upload Ulang Tugas' : '<i class="fa-solid fa-upload"></i> Upload Tugas'; const btnClass = existingSub ? 'btn-outline-warning' : 'btn-warning';
 
@@ -326,11 +326,11 @@
 
                 const { data: existingSub } = await window.supabaseClient.from('submissions').select('id').eq('student_id', state.user.id).eq('material_id', materialId).maybeSingle();
                 if (existingSub) {
-                    const { error: updateErr } = await window.supabaseClient.from('submissions').update({ submission_url: fileUrl, score: null }).eq('id', existingSub.id);
+                    const { error: updateErr } = await window.supabaseClient.from('submissions').update({ file_url: fileUrl, score: null }).eq('id', existingSub.id);
                     if (updateErr) throw updateErr;
                 } else {
                     // ID Supabase akan auto-generate (Pastikan kolom ID di tabel ini kosongkan nilai defaultnya atau gunakan uuid_generate_v4)
-                    const { error: insertErr } = await window.supabaseClient.from('submissions').insert([{ student_id: state.user.id, course_id: state.activeCourse.id, material_id: materialId, submission_url: fileUrl }]);
+                    const { error: insertErr } = await window.supabaseClient.from('submissions').insert([{ student_id: state.user.id, course_id: state.activeCourse.id, material_id: materialId, file_url: fileUrl }]);
                     if (insertErr) throw insertErr;
                 }
                 showToast('Tugas diupload!'); loadTabContent();
@@ -362,3 +362,4 @@
     </script>
 </body>
 </html>
+
