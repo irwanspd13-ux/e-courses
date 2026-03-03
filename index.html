@@ -16,6 +16,8 @@
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
     <style>
+        html { scroll-behavior: smooth; }
+        
         :root { 
             --primary-color: #4338ca; /* Deep Indigo */
             --primary-hover: #3730a3; 
@@ -78,7 +80,7 @@
         .hero-banner { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); position: relative; overflow: hidden; }
         .hero-glow { position: absolute; top: 0; right: 0; width: 400px; height: 400px; background: radial-gradient(circle, var(--primary-color) 0%, transparent 70%); opacity: 0.4; border-radius: 50%; transform: translate(30%, -30%); }
         
-        /* Notifikasi Dropdown (BARU) */
+        /* Notifikasi Dropdown */
         .notif-dropdown { width: 320px; max-height: 400px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 1rem; padding: 0; }
         .notif-item { padding: 1rem; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
         .notif-item:hover { background: #f8fafc; }
@@ -102,7 +104,7 @@
             activeCourse: null,
             activeTab: 'materi',
             courses: [],
-            notifications: [] // Menyimpan notifikasi
+            notifications: [] 
         };
 
         const showToast = (message, icon = 'success') => Swal.fire({ toast: true, position: 'top-end', icon, title: message, showConfirmButton: false, timer: 3000 });
@@ -119,7 +121,6 @@
                         <div class="d-flex align-items-center gap-3">`;
             
             if (state.user) { 
-                // FETCH NOTIFIKASI
                 const { data: notifs } = await window.supabaseClient.from('notifications').select('*').eq('student_id', state.user.id).order('created_at', { ascending: false });
                 state.notifications = notifs || [];
                 const unreadCount = state.notifications.filter(n => !n.is_read).length;
@@ -158,7 +159,7 @@
                             <button onclick="navigate('login')" class="btn btn-outline-primary rounded-pill px-4">Masuk</button>
                             <button onclick="navigate('register')" class="btn btn-primary rounded-pill px-4">Daftar</button>`; 
             }
-            html += `</div></div></nav><main class="container py-5 flex-grow-1" id="main-content"></main>`;
+            html += `</div></div></nav><main class="container py-4 py-md-5 flex-grow-1" id="main-content"></main>`;
             app.innerHTML = html;
 
             const mainContent = document.getElementById('main-content');
@@ -167,7 +168,7 @@
             else if (state.currentView === 'register') renderRegister(mainContent);
             else if (state.currentView === 'dashboard') renderDashboard(mainContent);
             else if (state.currentView === 'courseDetail') renderCourseDetail(mainContent);
-            else if (state.currentView === 'profile') renderProfile(mainContent); // VIEW PROFIL
+            else if (state.currentView === 'profile') renderProfile(mainContent); 
         };
 
         const navigate = (view, courseData = null) => {
@@ -178,30 +179,88 @@
 
         window.markNotifRead = async (id) => {
             await window.supabaseClient.from('notifications').update({ is_read: true }).eq('id', id);
-            renderApp(); // Refresh UI
+            renderApp(); 
         };
 
+        // ==========================================
+        // LANDING PAGE BARU (PUBLIC CATALOG)
+        // ==========================================
         const renderPublicCatalog = async (container) => {
             container.innerHTML = `
-                <div class="text-center mb-5 mt-3">
-                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3 fw-bold">Belajar Bersama Ahlinya</span>
-                    <h1 class="fw-bold text-dark mb-3" style="font-size: 2.5rem; letter-spacing: -1px;">Tingkatkan Keahlian Anda Hari Ini</h1>
-                    <p class="text-muted mx-auto" style="max-width: 600px; font-size: 1.1rem;">Pilih dari berbagai katalog kelas interaktif kami. Daftar sekarang untuk mulai belajar dan dapatkan sertifikat kelulusan.</p>
+                <div class="hero-banner p-4 p-md-5 mb-5 rounded-4 text-white shadow-lg text-center text-md-start">
+                    <div class="hero-glow"></div>
+                    <div class="row align-items-center position-relative z-index-1">
+                        <div class="col-md-7 mb-4 mb-md-0">
+                            <span class="badge bg-white text-primary px-3 py-2 rounded-pill mb-3 fw-bold shadow-sm">Platform Belajar Interaktif</span>
+                            <h1 class="fw-bold display-5 mb-3 lh-sm" style="letter-spacing: -1px;">Tingkatkan Keahlian Anda Bersama EduPro</h1>
+                            <p class="fs-5 text-white-50 mb-4" style="max-width: 90%;">Akses ratusan materi berkualitas, kerjakan kuis interaktif, dan raih sertifikat kelulusan yang diakui oleh industri.</p>
+                            <div class="d-flex gap-3 justify-content-center justify-content-md-start">
+                                <button onclick="navigate('register')" class="btn btn-light text-primary rounded-pill px-4 py-2 fw-bold shadow">Mulai Belajar Sekarang</button>
+                                <a href="#katalog-kelas" class="btn btn-outline-light rounded-pill px-4 py-2 fw-bold">Eksplor Kelas</a>
+                            </div>
+                        </div>
+                        <div class="col-md-5 d-none d-md-block text-center">
+                            <i class="fa-solid fa-user-graduate" style="font-size: 10rem; opacity: 0.9; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));"></i>
+                        </div>
+                    </div>
                 </div>
-                <div id="publicCourseList" class="row g-4"></div>`;
+
+                <div class="row g-4 mb-5 text-center px-2">
+                    <div class="col-md-4">
+                        <div class="card p-4 h-100 border-0 shadow-sm bg-white card-hover">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;"><i class="fa-solid fa-laptop-file fs-3"></i></div>
+                            <h5 class="fw-bold text-dark">Materi Interaktif</h5>
+                            <p class="text-muted small mb-0">Belajar lebih asik dengan modul terstruktur, video, teks, dan tugas praktik yang mudah dipahami.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card p-4 h-100 border-0 shadow-sm bg-white card-hover">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;"><i class="fa-solid fa-certificate fs-3"></i></div>
+                            <h5 class="fw-bold text-dark">Sertifikat Validasi</h5>
+                            <p class="text-muted small mb-0">Dapatkan sertifikat kelulusan resmi ber-QR code setelah Anda berhasil lulus ujian akhir kelas.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card p-4 h-100 border-0 shadow-sm bg-white card-hover">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;"><i class="fa-solid fa-infinity fs-3"></i></div>
+                            <h5 class="fw-bold text-dark">Akses Selamanya</h5>
+                            <p class="text-muted small mb-0">Cukup mendaftar satu kali, pelajari materi berkali-kali kapanpun dan dimanapun tanpa batas waktu.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="katalog-kelas" class="pt-2 mb-4 mt-5 d-flex justify-content-between align-items-end">
+                    <div class="text-center text-md-start w-100">
+                        <h3 class="fw-bold text-dark mb-1">Katalog Kelas Premium</h3>
+                        <p class="text-muted mb-0">Pilih program yang sesuai dengan tujuan karir Anda.</p>
+                    </div>
+                </div>
+                <div id="publicCourseList" class="row g-4 mb-5">
+                    <div class="col-12 text-center p-5"><div class="spinner-border text-primary"></div></div>
+                </div>
+                
+                <div class="card bg-primary bg-opacity-10 border-0 rounded-4 p-5 text-center mb-4 mt-4">
+                    <h3 class="fw-bold text-primary mb-3">Siap untuk Memulai Perjalanan Anda?</h3>
+                    <p class="text-muted mb-4 mx-auto" style="max-width: 600px;">Bergabunglah dengan ratusan siswa lainnya yang telah meningkatkan keahlian mereka bersama EduPro.</p>
+                    <div><button onclick="navigate('register')" class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-sm">Daftar Akun Gratis <i class="fa-solid fa-arrow-right ms-2"></i></button></div>
+                </div>
+                `;
                 
             const { data: courses } = await window.supabaseClient.from('courses').select('*').order('created_at', { ascending: false });
             let html = (courses||[]).map(c => `
                 <div class="col-md-6 col-lg-4">
                     <div class="card card-hover h-100 border-0" onclick="handleGuestClick()" style="cursor: pointer;">
                         <span class="price-badge ${c.price==0?'bg-success text-white':'bg-white text-dark shadow-sm'}">${c.price==0?'Gratis':'Rp '+formatRupiah(c.price)}</span>
-                        <div class="position-relative" style="height: 160px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+                        <div class="position-relative" style="height: 180px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
                             <div class="position-absolute top-50 start-50 translate-middle text-white"><i class="fa-solid fa-laptop-code fa-4x opacity-50"></i></div>
                         </div>
                         <div class="card-body d-flex flex-column p-4">
                             <h5 class="fw-bold mb-2 text-dark lh-base">${c.title}</h5>
                             <p class="text-muted small mb-4 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${c.description}</p>
-                            <button class="btn btn-outline-primary w-100 rounded-pill">Lihat Detail Kelas</button>
+                            <div class="d-flex align-items-center justify-content-between border-top pt-3 mt-auto">
+                                <span class="text-primary fw-bold small"><i class="fa-solid fa-book-open me-2"></i>Lihat Detail Kelas</span>
+                                <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;"><i class="fa-solid fa-arrow-right text-primary"></i></div>
+                            </div>
                         </div>
                     </div>
                 </div>`).join('');
@@ -284,7 +343,6 @@
 
         const handleLogout = () => { localStorage.removeItem('edupro_student'); state.user = null; navigate('catalog'); };
 
-        // HALAMAN PROFIL (BARU)
         const renderProfile = (container) => {
             container.innerHTML = `
                 <button onclick="navigate('dashboard')" class="btn btn-link text-muted p-0 mb-4 text-decoration-none fw-semibold">
@@ -381,9 +439,6 @@
 
         window.openStudentCourseGlobal = (id, hasAccess) => { const course = state.courses.find(c => c.id === id); if (course) hasAccess ? navigate('courseDetail', course) : window.enrollCourse(course.id, course.price); };
         
-        // ==========================================
-        // MODIFIKASI FUNGSI PEMBAYARAN MENGGUNAKAN POP-UP QRIS DANA
-        // ==========================================
         window.enrollCourse = async (courseId, price) => { 
             Swal.fire({ 
                 title: 'Daftar Kelas Ini?', 
@@ -402,7 +457,6 @@
                     if (price == 0) {
                         Swal.fire('Berhasil', 'Anda telah terdaftar di kelas gratis ini!', 'success').then(() => navigate('dashboard')); 
                     } else {
-                        // Jika Berbayar, Munculkan Instruksi Scan QRIS DANA
                         Swal.fire({
                             title: 'Selesaikan Pembayaran',
                             html: `
@@ -419,13 +473,12 @@
                             showCancelButton: true,
                             confirmButtonText: 'Lanjut Bayar <i class="fa-solid fa-arrow-right ms-1"></i>',
                             cancelButtonText: 'Keluar',
-                            confirmButtonColor: '#10b981', // Warna Hijau
-                            cancelButtonColor: '#ef4444',  // Warna Merah
+                            confirmButtonColor: '#10b981', 
+                            cancelButtonColor: '#ef4444',  
                             allowOutsideClick: false
                         }).then((paymentRes) => {
                             if(paymentRes.isConfirmed) {
-                                // Arahkan ke WhatsApp (Anda bisa mengganti nomor WA 62812... di bawah ini dengan nomor Anda)
-                                window.open(`https://wa.me/6281999793085?text=Halo%20Admin,%20saya%20${state.user.full_name}%20ingin%20mengonfirmasi%20pembayaran%20kelas.`, '_blank');
+                                window.open(`https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20${state.user.full_name}%20ingin%20mengonfirmasi%20pembayaran%20kelas.`, '_blank');
                             }
                             navigate('dashboard');
                         });
@@ -714,7 +767,7 @@
                 const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); 
                 const qrText = `Validasi EduPro\nNomor: ${certNumber}\nTanggal: ${today}\nNama: ${state.user.full_name}\nKelas: ${state.activeCourse.title}\nSkor: ${window.courseFinalScore}`;
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrText)}`;
-                const [bgImg, qrImg, logoImg] = await Promise.all([ loadImage('https://i.ibb.co.com/DDSSRmff/background-sertifikat1.png'), loadImage(qrUrl), loadImage('https://i.ibb.co.com/fYDFWPyM/logo-edu-Pro.png') ]);
+                const [bgImg, qrImg, logoImg] = await Promise.all([ loadImage('https://i.ibb.co.com/V0mYH0mw/sertifikat-background.png'), loadImage(qrUrl), loadImage('') ]);
                 const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); 
                 doc.addImage(bgImg, 'PNG', 0, 0, 297, 210);
                 
@@ -750,4 +803,3 @@
     </script>
 </body>
 </html>
-
