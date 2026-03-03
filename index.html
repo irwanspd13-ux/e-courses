@@ -762,7 +762,7 @@
             Swal.fire({ title: 'Mencetak Sertifikat...', text: 'Mempersiapkan desain resolusi tinggi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
             try {
                 // 1. Definisi Variabel Direktur (Agar data konsisten)
-                const namaDirektur = "Kartia Amriani";
+                const namaDirektur = "Dr. Faisal Amir, M.Pd";
                 const jabatanDirektur = "Direktur Utama EduPro";
 
                 const loadImage = (url) => new Promise((res, rej) => { const img = new Image(); img.crossOrigin = 'Anonymous'; img.onload = () => res(img); img.onerror = () => rej(new Error('Gagal: ' + url)); img.src = url; });
@@ -837,6 +837,7 @@
     </script>
 </body>
 </html>
+
 
 
 
