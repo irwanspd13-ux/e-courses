@@ -758,7 +758,7 @@
             } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
         };
 
-        window.downloadCertificate = async () => {
+       window.downloadCertificate = async () => {
             Swal.fire({ title: 'Mencetak Sertifikat...', text: 'Mempersiapkan desain resolusi tinggi...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
             try {
                 const loadImage = (url) => new Promise((res, rej) => { const img = new Image(); img.crossOrigin = 'Anonymous'; img.onload = () => res(img); img.onerror = () => rej(new Error('Gagal: ' + url)); img.src = url; });
@@ -767,14 +767,20 @@
                 const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); 
                 const qrText = `Validasi EduPro\nNomor: ${certNumber}\nTanggal: ${today}\nNama: ${state.user.full_name}\nKelas: ${state.activeCourse.title}\nSkor: ${window.courseFinalScore}`;
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrText)}`;
+                
+                // Memuat background baru dan QR Code (Tanpa Logo)
                 const [bgImg, qrImg] = await Promise.all([ 
                     loadImage('https://i.ibb.co.com/V0mYH0mw/sertifikat-background.png'), 
                     loadImage(qrUrl) 
                 ]);
-                const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); 
-                doc.addImage(bgImg, 'PNG', 0, 0, 297, 210);                
-               
-                doc.addImage(logoImg, 'PNG', posisiX, 18, logoLebar, logoTinggi);
+                
+                const { jsPDF } = window.jspdf; 
+                const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); 
+                
+                // Memasang background
+                doc.addImage(bgImg, 'PNG', 0, 0, 297, 210);
+                
+                // Mencetak Teks Sertifikat
                 doc.setFont('helvetica', 'bold'); doc.setFontSize(28); doc.setTextColor(15, 23, 42);
                 doc.text("SERTIFIKAT KELULUSAN", 148.5, 65, { align: 'center' });
                 doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(100, 116, 139);
@@ -790,18 +796,29 @@
                 doc.text(`Predikat: ${window.coursePredikat}   |   Skor Akhir: ${window.courseFinalScore}`, 148.5, 137, { align: 'center' });
                 doc.setFontSize(12); doc.setFont('helvetica', 'normal'); doc.setTextColor(71, 85, 105);
                 doc.text(`Diberikan pada tanggal: ${today}`, 148.5, 145, { align: 'center' });
+                
+                // Memasang QR Code
                 doc.addImage(qrImg, 'PNG', 137.5, 149, 22, 22);
+                
+                // Tanda Tangan
                 doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(15, 23, 42);
-                doc.text("Dr.Faisal Amir, M.Pd.", 148.5, 178, { align: 'center' }); 
+                doc.text("Dr. Faisal Amir, M.Pd", 148.5, 178, { align: 'center' }); 
                 doc.setDrawColor(15, 23, 42); doc.setLineWidth(0.5); doc.line(125, 180, 172, 180); 
                 doc.setFontSize(11); doc.setFont('helvetica', 'normal'); doc.setTextColor(71, 85, 105);
                 doc.text("Direktur Utama EduPro", 148.5, 186, { align: 'center' });
-                doc.save(`Sertifikat_${state.activeCourse.title.replace(/\s+/g, '_')}.pdf`); Swal.fire('Berhasil!', 'Sertifikat resmi berhasil dicetak.', 'success');
-            } catch(e) { Swal.fire('Gagal', 'Pastikan koneksi internet Anda stabil.', 'error'); }
+                
+                // Simpan PDF
+                doc.save(`Sertifikat_${state.activeCourse.title.replace(/\s+/g, '_')}.pdf`); 
+                Swal.fire('Berhasil!', 'Sertifikat resmi berhasil dicetak.', 'success');
+            } catch(e) { 
+                console.error("Detail Error:", e);
+                Swal.fire('Gagal', 'Gagal memuat gambar atau mencetak sertifikat. Cek koneksi internet Anda.', 'error'); 
+            }
         };
 
         renderApp();
     </script>
 </body>
 </html>
+
 
